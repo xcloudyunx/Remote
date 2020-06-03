@@ -1,0 +1,36 @@
+"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --profile-directory=Default
+C:\Users\Yunge\AppData\Local\Discord\Update.exe --processStart Discord.exe
+"D:\Program Files (x86)\Steam\Steam.exe"
+
+"D:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\devenv.exe"
+"D:\Program Files\Android\Android Studio\bin\studio64.exe"
+"D:\Program Files (x86)\Notepad++\notepad++.exe"
+start
+"D:\Program Files\GIMP 2\bin\gimp-2.10.exe"
+trackpad
+keyboard
+numpad
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
