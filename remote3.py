@@ -256,6 +256,9 @@ class MainFrame(wx.Frame):
 		file = open("Resources/settings.dat", "r")
 		self.rows, self.columns, self.numPages, self.requireSync = map(int, file.read().splitlines())
 		file.close()
+		file = open("Resources/updates.dat", "r")
+		self.updates = list(file.read())
+		file.close()
 		
 		# changing page controller
 		self.currentPage = wx.SpinCtrl(parent=self.panel, pos=(700, 650), size=(75, 25), min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
@@ -326,8 +329,11 @@ class MainFrame(wx.Frame):
 			for k in range(len(self.pages), self.numPages):
 				p = page(self.panel, k+1, r, c)
 				self.pages.append(p)
-			for i in range(len(self.commands), len(self.pages)):
+			for i in range(len(self.commands), len(self.pages)*TOTAL):
 				self.commands.append("")
+			for i in range(len(self.updates), len(self.pages)*TOTAL):
+				self.updates.append("0")
+				
 		self.changePage(None)
 	
 	def customise(self, event):
@@ -359,7 +365,11 @@ class MainFrame(wx.Frame):
 			if self.conn:
 				self.syncImage(id)
 			else:
-				pass
+				self.updates[id] = "1"
+				file = open("Resources/updates.dat", "r+")
+				file.seek(id)
+				file.write("1")
+				file.close()
 			
 	def syncGrid(self):
 		print("SYNC GRID")
@@ -398,11 +408,26 @@ class MainFrame(wx.Frame):
 			c = True
 			print("accepted")
 			
+			# check if grid requires syncing
 			if self.requireSync:
 				self.syncGrid(True)
 				self.requireSync = False
-				# update settings file
-				# also need to consider syncing individual icon images
+				file = open("Resources/settings.dat", "w")
+				file.write(str(r)+"\n")
+				file.write(str(c)+"\n")
+				file.write(str(p)+"\n")
+				file.write(str(self.requireSync)+"\n")
+				file.close()
+				
+			# check if icons require syncing
+			file = open("Resources/updates.dat", "r+")
+			for i in range(self.updates):
+				if self.updates[i] == "1":
+					self.syncImage(i)
+					self.updates[i] = "0"
+					file.seek(id)
+					file.write("0")
+			file.close()
 
 			while c:
 				data = self.conn.recv(MSGSIZE)
