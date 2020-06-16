@@ -228,7 +228,7 @@ class page(wx.Panel):
 				self.icons[i*COLS+j].SetPosition(( int(xpadding + 2*SIZE*scale*j), int(ypadding + 2*SIZE*scale*i) ))
 	
 	def updateIcon(self, id, img):
-		img.Rescale(self.icons[id].GetWidtb(), self.icons[id].GetHeight())
+		img.Rescale(int(self.icons[id].GetWidtb()), int(self.icons[id].GetHeight()))
 		self.icons[id].setBitap(wx.Bitmap(img))
 	
 class MainFrame(wx.Frame):    
