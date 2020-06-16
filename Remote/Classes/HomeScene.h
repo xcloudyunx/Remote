@@ -10,6 +10,7 @@
 
 #include "Page.h"
 #include "base64.h"
+#include "Server.h"
 
 #include <string>
 #include <thread>
@@ -31,11 +32,7 @@ public:
     CREATE_FUNC(Home);
 
 private:
-	std::string IP = UserDefault::getInstance()->getStringForKey("ip");
-	const int PORT = 1235;
-
-	int _server;
-	sockaddr_in _serverAddr;
+	Server* _server;
 	
 	int _rows;
 	int _columns;
@@ -44,14 +41,9 @@ private:
 	float _left;
 	float _right;
 	
-	std::vector<std::unique_ptr<Page>> _p;
+	std::vector<Page> _p;
 	
 	void changePage(int page);
-	
-	void SEND(const char* msg);
-	//std::string RECV(int size);
-	std::string RECV();		//test
-	bool endsWith(std::string fullString, std::string const &ending);
 };
 
 #endif // __HOME_SCENE_H__

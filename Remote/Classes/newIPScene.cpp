@@ -12,7 +12,7 @@ bool newIP::init() {
 	FileUtils::getInstance()->addSearchPath(FileUtils::getInstance()->getWritablePath(), true);
 	
 	/*if (UserDefault::getInstance()->getStringForKey("ip", "NEW") != "NEW") {
-		this->runAction(CallFunc::create([&](){
+		this->runAction(CallFunc::create([](){
 			Director::getInstance()->pushScene(Home::createScene());
 		}));
 	}*/

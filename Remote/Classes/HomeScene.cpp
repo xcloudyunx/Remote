@@ -16,16 +16,7 @@ bool Home::init() {
 	background->setPosition(visibleSize/2);
 	this->addChild(background);
 	
-	_server = socket(AF_INET, SOCK_STREAM, 0);
-	_serverAddr.sin_family = AF_INET; 
-	_serverAddr.sin_port = htons(PORT); 
-	_serverAddr.sin_addr.s_addr = inet_addr(IP.c_str());
-	if (connect(_server, (struct sockaddr*) &_serverAddr, sizeof(_serverAddr)) < 0) {	//add a timeout???
-		log("Connection Failed");
-		this->runAction(CallFunc::create([&](){
-							Director::getInstance()->popScene();
-						}));
-	}
+	_server = Server::getInstance()
 	
 	_rows = UserDefault::getInstance()->getIntegerForKey("rows", 3);
 	_columns = UserDefault::getInstance()->getIntegerForKey("columns", 4);
@@ -33,8 +24,9 @@ bool Home::init() {
 	_currentPage = 1;
 	
 	for (int k=1; k<=_pages; k++) {
-		auto tmp = std::unique_ptr<Page>(new Page(this, _server, k, _rows, _columns));
-		_p.push_back(std::move(tmp));
+		auto p = Page::create(k, _rows, _columns);
+		this->addChild(p)
+		_p.push_back(p);
 	}
 	_left = _p[_currentPage-1]->getLeft();
 	_right = _p[_currentPage-1]->getRight();
@@ -61,8 +53,8 @@ bool Home::init() {
 			auto task = RECV();
 			log("%s", task.c_str());
 			if (task == "image") {
-				auto id = stoi(RECV());
-				std::string image = RECV();
+				auto id = stoi(_server->RECV());
+				std::string image = _server->RECV();
 				image = base64_decode(image);
 				auto path = FileUtils::getInstance()->getWritablePath();
 				FileUtils::getInstance()->addSearchPath(path, true);
@@ -71,32 +63,24 @@ bool Home::init() {
 				Director::getInstance()->getScheduler()->performFunctionInCocosThread([&](){
 					_p[id/TOTAL]->sync(id);
 				});
-			} else if (task == "background") {
-				std::string image = RECV();
-				image = base64_decode(image);
-				auto path = FileUtils::getInstance()->getWritablePath();
-				FileUtils::getInstance()->addSearchPath(path, true);
-				FileUtils::getInstance()->writeStringToFile(image, path+"background.png");
-				Director::getInstance()->getTextureCache()->removeTextureForKey("background.png");
-				Director::getInstance()->getScheduler()->performFunctionInCocosThread([&](){
-					background->setTexture("background.png");
-				});
 			} else if (task == "grid") {
-				_pages = stoi(RECV());
-				_rows = stoi(RECV());
-				_columns = stoi(RECV());
+				// CHECK IF USER HAS PREMIUM
+				_pages = stoi(_server->RECV());
+				_rows = stoi(_server->RECV());
+				_columns = stoi(_server->RECV());
 				UserDefault::getInstance()->setIntegerForKey("rows", _rows);
 				UserDefault::getInstance()->setIntegerForKey("columns", _columns);
 				UserDefault::getInstance()->setIntegerForKey("pages", _pages);
 				
 				Director::getInstance()->getScheduler()->performFunctionInCocosThread([&](){
-					for (auto &i : _p) {
+					for (auto i : _p) {
 						i->update();
 					}
 					if (_pages > _p.size()) {
 						for (int k=_p.size()+1; k<=_pages; k++) {
-							auto tmp = std::unique_ptr<Page>(new Page(this, _server, k, _rows, _columns));
-							_p.push_back(std::move(tmp));
+							auto p = Page::create(k, _rows, _columns);
+							this->addChild(p)
+							_p.push_back(p);
 						}
 					}
 					_left = _p[_currentPage-1]->getLeft();
@@ -126,38 +110,11 @@ bool Home::init() {
 void Home::changePage(int page) {
 	log("CHANGE PAGE TO %d", page);
 	_currentPage = page;
-	for (auto &i: _p) {
+	for (auto i: _p) {
 		if (i->getPage() == page) {
 			i->show();
 		} else {
 			i->hide();
 		}
 	}
-}
-
-void Home::SEND(const char* msg) {
-	send(_server, msg, strlen(msg), 0);
-	log("%s", msg);
-}
-
-std::string Home::RECV() {
-	std::string msg = "";
-	log("MSG START");
-	while (!endsWith(msg, "EOFEOFEOFEOFEOFEOFEOFEOFXXX")) {
-		std::vector<char> buf(4096);
-		recv(_server, buf.data(), buf.size(), 0);
-		msg += std::string(buf.begin(), buf.end()).c_str();
-	}
-	log("DONE");
-	return msg.substr(0, msg.size()-27);
-	// add something that deals with server crash
-}
-
-bool Home::endsWith(std::string fullString, std::string const &ending) {
-    fullString = fullString.c_str();
-    if (fullString.size() >= ending.size()) {
-        return (0 == fullString.compare(fullString.size() - ending.size(), ending.size(), ending));
-    } else {
-        return false;
-    }
 }

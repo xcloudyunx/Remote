@@ -19,6 +19,11 @@
    René Nyffenegger rene.nyffenegger@adp-gmbh.ch
 */
 
+/*
+I may not need this as cocos has builtin base64
+I just need to figure how to use it and if it works
+*/
+
 #include "base64.h"
 #include <iostream>
 

@@ -221,11 +221,15 @@ class page(wx.Panel):
 		
 		for i in range(ROWS):
 			for j in range(COLS):
-				self.icons[i*COLS+j].SetSize(int(SIZE*scale+PADDING), int(SIZE*scale+PADDING))
-				img = self.icons[i*COLS+j].GetBitmap().ConvertToImage()
-				img.Rescale(int(scale*SIZE), int(scale*SIZE))
-				self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
-				self.icons[i*COLS+j].SetPosition(( int(xpadding + 2*SIZE*scale*j), int(ypadding + 2*SIZE*scale*i) ))
+				if i < rows and j < cols:
+					self.icons[i*COLS+j].SetSize(int(SIZE*scale+PADDING), int(SIZE*scale+PADDING))
+					img = self.icons[i*COLS+j].GetBitmap().ConvertToImage()
+					img.Rescale(int(scale*SIZE), int(scale*SIZE))
+					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
+					self.icons[i*COLS+j].SetPosition(( int(xpadding + 2*SIZE*scale*j), int(ypadding + 2*SIZE*scale*i) ))
+					self.icons[i*COLS+j].Show()
+				else:
+					self.icons[i*COLS+j].Hide()
 	
 	def updateIcon(self, id, img):
 		img.Rescale(int(self.icons[id].GetWidtb()), int(self.icons[id].GetHeight()))
