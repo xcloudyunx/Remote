@@ -12,14 +12,6 @@
 #include "base64.h"
 #include "Server.h"
 
-#include <string>
-#include <thread>
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/socket.h> 
-#include <arpa/inet.h> 
-#include <netinet/in.h> 
-
 using namespace cocos2d;
 using namespace ui;
 
@@ -41,7 +33,7 @@ private:
 	float _left;
 	float _right;
 	
-	std::vector<Page> _p;
+	std::vector<Page*> _p;
 	
 	void changePage(int page);
 };

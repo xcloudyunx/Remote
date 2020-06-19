@@ -17,7 +17,7 @@ class Page : public Node {
 public:
 	static Page* create(int p, int &r, int &c);
 
-	virtual bool init(int p, int &r, int &c)
+	virtual bool init(int p, int &r, int &c);
 	
 	void update();
 	

@@ -63,7 +63,7 @@ void Page::update() {
 	
 	for (int i=0; i<ROWS; i++) {
 		for (int j=0; j<COLS; j++) {
-			if (i < *_rows &&  < *_columns) {
+			if (i < *_rows && j < *_columns) {
 				_icons[i*COLS+j]->setScale(scale);
 				_icons[i*COLS+j]->setPosition(Vec2(xpadding+_size*2*scale*j, ypadding-_size*2*scale*i));
 				_icons[i*COLS+j]->setVisible(true);

@@ -16,7 +16,12 @@ bool Home::init() {
 	background->setPosition(visibleSize/2);
 	this->addChild(background);
 	
-	_server = Server::getInstance()
+	_server = Server::getInstance();
+	if (!_server) {
+		this->runAction(CallFunc::create([]() {
+			Director::getInstance()->popScene();
+		}));
+	}
 	
 	_rows = UserDefault::getInstance()->getIntegerForKey("rows", 3);
 	_columns = UserDefault::getInstance()->getIntegerForKey("columns", 4);
@@ -25,7 +30,7 @@ bool Home::init() {
 	
 	for (int k=1; k<=_pages; k++) {
 		auto p = Page::create(k, _rows, _columns);
-		this->addChild(p)
+		this->addChild(p);
 		_p.push_back(p);
 	}
 	_left = _p[_currentPage-1]->getLeft();
@@ -50,7 +55,7 @@ bool Home::init() {
 	
 	std::thread serv([&](){
 		while (true) {
-			auto task = RECV();
+			auto task = _server->RECV();
 			log("%s", task.c_str());
 			if (task == "image") {
 				auto id = stoi(_server->RECV());
@@ -79,7 +84,7 @@ bool Home::init() {
 					if (_pages > _p.size()) {
 						for (int k=_p.size()+1; k<=_pages; k++) {
 							auto p = Page::create(k, _rows, _columns);
-							this->addChild(p)
+							this->addChild(p);
 							_p.push_back(p);
 						}
 					}

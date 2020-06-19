@@ -3,6 +3,14 @@
 
 #include "cocos2d.h"
 
+#include <string>
+#include <thread>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
 using namespace cocos2d;
 
 class Server : public Ref {
