@@ -26,7 +26,7 @@ bool newIP::init() {
 	
 	auto ipInput = EditBox::create(Size(800, 80), Scale9Sprite::create("ip.png"));
 	ipInput->setPlaceHolder("Enter IP address here");
-	ipInput->setInputMode(EditBox::InputMode::NUMERIC);
+	ipInput->setInputMode(EditBox::InputMode::SINGLE_LINE);
 	ipInput->setMaxLength(15);
 	ipInput->setReturnType(EditBox::KeyboardReturnType::DONE);
 	ipInput->setDelegate(this);

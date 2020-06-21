@@ -11,7 +11,7 @@ WIDTH = 1000
 HEIGHT = 750
 PANELWIDTH = 1000
 PANELHEIGHT = 680
-SIZE = 100
+SIZE = 100.0
 PADDING = 4
 FONT = 0
 
@@ -19,7 +19,7 @@ pyautogui.FAILSAFE = False
 
 class taskBarIcon(wx.adv.TaskBarIcon):
 	def __init__(self, frame):
-		super().__init__()
+		super(taskBarIcon, self).__init__()
 		
 		# stores the actual app
 		self.frame = frame
@@ -65,7 +65,7 @@ class taskBarIcon(wx.adv.TaskBarIcon):
 
 class settingsPopup(wx.Dialog):
 	def __init__(self, parent, r, c, p):
-		super().__init__(parent=parent, title='Settings', size=(310, 290))
+		super(settingsPopup, self).__init__(parent=parent, title='Settings', size=(310, 290))
 		self.SetFont(FONT)
 
 		self.panel = wx.Panel(self)
@@ -106,7 +106,7 @@ class settingsPopup(wx.Dialog):
 
 class customisePopup(wx.Dialog):
 	def __init__(self, parent, pos, id, action):
-		super().__init__(parent=parent, title='Customise', pos=pos, size=(400, 300))
+		super(customisePopup, self).__init__(parent=parent, title='Customise', pos=pos, size=(400, 300))
 		self.SetFont(FONT)
 		
 		self.panel = wx.Panel(self)
@@ -170,7 +170,7 @@ class customisePopup(wx.Dialog):
 		return self.types[self.actionType.GetSelection()]
 		
 	def getAction(self):
-		return self.action.GetLineText(0)
+		return self.action.GetLineText(1)
 		
 	def update(self, event):
 		self.GetParent().customiseUpdate(self.id, self.getActionType(), self.getAction(), self.getFile())
@@ -181,7 +181,7 @@ class customisePopup(wx.Dialog):
 
 class page(wx.Panel):
 	def __init__(self, parent, pageNumber, rows, cols):
-		super().__init__(parent=parent, id=pageNumber, size=(PANELWIDTH, PANELHEIGHT))
+		super(page, self).__init__(parent=parent, id=pageNumber, size=(PANELWIDTH, PANELHEIGHT))
 		
 		self.pageNumber = pageNumber
 		
@@ -218,6 +218,7 @@ class page(wx.Panel):
 		scale = min( (PANELWIDTH - 2*SIZE) / (cols * 2*SIZE - SIZE), (PANELHEIGHT - 2*SIZE) / (rows * 2*SIZE - SIZE) )
 		xpadding = (PANELWIDTH - (cols * 2*SIZE - SIZE) * scale) / 2
 		ypadding = (PANELHEIGHT - (rows * 2*SIZE - SIZE) * scale) / 2
+		print scale
 		
 		for i in range(ROWS):
 			for j in range(COLS):
@@ -232,12 +233,12 @@ class page(wx.Panel):
 					self.icons[i*COLS+j].Hide()
 	
 	def updateIcon(self, id, img):
-		img.Rescale(int(self.icons[id].GetBitmap().GetWidth()), int(self.icons[id].GetBitmap().GetHeight()))
-		self.icons[id].SetBitmap(wx.Bitmap(img))
+		img.Rescale(int(self.icons[id].GetWidtb()), int(self.icons[id].GetHeight()))
+		self.icons[id].setBitap(wx.Bitmap(img))
 	
 class MainFrame(wx.Frame):    
 	def __init__(self):
-		super().__init__(parent=None, title='Remote', size=(WIDTH, HEIGHT))
+		super(MainFrame, self).__init__(parent=None, title='Remote', size=(WIDTH, HEIGHT))
 		global FONT
 		FONT = self.GetFont()
 		FONT.SetPointSize(9)
@@ -289,7 +290,9 @@ class MainFrame(wx.Frame):
 		self.Show()
 		
 		# allow connections
-		threading.Thread(target=self.connect, daemon=True).start()
+		s = threading.Thread(target=self.connect)
+		s.daemon = True
+		s.start()
 		
 	def changePage(self, event):
 		for k in range(self.numPages):
@@ -349,7 +352,7 @@ class MainFrame(wx.Frame):
 		# rewrite probably
 		if self.commands[id] != action:
 			if actionType == "Script/File":
-				self.commands[id] = '"'+action+'"'
+				self.commands[id] = "start "+action
 			else:
 				self.commands[id] = action
 			file = open("Resources/commands.dat", "w")
@@ -393,7 +396,7 @@ class MainFrame(wx.Frame):
 		self.send(str(id))
 		time.sleep(1)
 		file = open("Resources/"+str(id)+".png", "rb")
-		lines = base64.b64encode(file.read()).decode()
+		lines = base64.b64encode(file.read())
 		file.close()
 		self.send(lines)
 		print("DONE")
@@ -414,18 +417,18 @@ class MainFrame(wx.Frame):
 			
 			# check if grid requires syncing
 			if self.requireSync:
-				self.syncGrid()
-				self.requireSync = 0
+				self.syncGrid(True)
+				self.requireSync = False
 				file = open("Resources/settings.dat", "w")
-				file.write(str(self.rows)+"\n")
-				file.write(str(self.columns)+"\n")
-				file.write(str(self.numPages)+"\n")
+				file.write(str(r)+"\n")
+				file.write(str(c)+"\n")
+				file.write(str(p)+"\n")
 				file.write(str(self.requireSync)+"\n")
 				file.close()
 				
 			# check if icons require syncing
 			file = open("Resources/updates.dat", "r+")
-			for i in range(len(self.updates)):
+			for i in range(self.updates):
 				if self.updates[i] == "1":
 					self.syncImage(i)
 					self.updates[i] = "0"
@@ -434,7 +437,7 @@ class MainFrame(wx.Frame):
 			file.close()
 
 			while c:
-				data = self.conn.recv(MSGSIZE).decode()
+				data = self.conn.recv(MSGSIZE)
 				c = self.get(data)
 			
 	def get(self, data):
@@ -458,7 +461,7 @@ class MainFrame(wx.Frame):
 			os.system(c)
 			
 	def send(self, msg):
-		self.conn.send((msg+"EOFEOFEOFEOFEOFEOFEOFEOFXXX").encode())
+		self.conn.send(msg+"EOFEOFEOFEOFEOFEOFEOFEOFXXX")
 	
 	def iconise(self, event):
 		# shrink to display tray icon
@@ -475,7 +478,6 @@ def receiver(utility):
 
 	while True:
 		data, address = server.recvfrom(4096)
-		data = data.decode()
 		if data == "exit":
 			return
 		if utility == "trackpad":

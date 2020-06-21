@@ -23,6 +23,7 @@ bool Server::init() {
 		log("Connection Failed");
 		return false;
 	}
+	log("Connection Succeeded");
 	
 	return true;
 }

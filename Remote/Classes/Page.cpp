@@ -53,6 +53,8 @@ bool Page::init(int p, int &r, int &c) {
 		}
 	}
 	update();
+	
+	return true;
 }
 
 void Page::update() {

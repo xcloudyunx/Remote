@@ -21,6 +21,7 @@ bool Home::init() {
 		this->runAction(CallFunc::create([]() {
 			Director::getInstance()->popScene();
 		}));
+		return true;
 	}
 	
 	_rows = UserDefault::getInstance()->getIntegerForKey("rows", 3);
