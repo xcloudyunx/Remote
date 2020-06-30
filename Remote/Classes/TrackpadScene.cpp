@@ -43,12 +43,11 @@ bool Trackpad::init() {
 	auto touchListener = EventListenerTouchAllAtOnce::create();
 	
 	touchListener->onTouchesBegan = [&](const std::vector<Touch*> &touches, Event* event) {
-		_touches++;
 		_firstMove = true;
-		if (_touches == 1) {
+		if (_touches == 0) {
 			_click = true;
 			this->runAction(Sequence::create(
-									DelayTime::create(0.1f),
+									DelayTime::create(0.3f),
 									CallFunc::create([&](){
 										if (_click) {
 											_click = false;
@@ -62,6 +61,7 @@ bool Trackpad::init() {
 				SEND("drag start");
 			}
 		}
+		_touches += touches.size();
 	};
 	
 	touchListener->onTouchesMoved = [&](const std::vector<Touch*> &touches, Event* event) {

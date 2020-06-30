@@ -4,7 +4,7 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 
-#include "TrackpadScene.h"
+#include "TrackpadScene2.h"
 #include "KeyboardScene.h"
 #include "NumpadScene.h"
 

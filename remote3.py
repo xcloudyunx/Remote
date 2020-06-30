@@ -429,7 +429,7 @@ class MainFrame(wx.Frame):
 				if self.updates[i] == "1":
 					self.syncImage(i)
 					self.updates[i] = "0"
-					file.seek(id)
+					file.seek(i)
 					file.write("0")
 			file.close()
 

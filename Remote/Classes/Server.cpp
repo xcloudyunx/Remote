@@ -5,7 +5,7 @@ static Server* _instance = nullptr;
 Server* Server::getInstance() {
 	if (!_instance) {
 		_instance = new (std::nothrow) Server;
-		if (!_instance->init()) return nullptr;
+		if (!_instance->init()) return _instance = nullptr;
     }
 	return _instance;
 }
@@ -21,6 +21,7 @@ bool Server::init() {
 	serverAddr.sin_addr.s_addr = inet_addr(IP.c_str());
 	if (connect(_server, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) < 0) {	//add a timeout???
 		log("Connection Failed");
+		UserDefault::getInstance()->setStringForKey("ip", "NEW");
 		return false;
 	}
 	log("Connection Succeeded");

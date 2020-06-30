@@ -11,11 +11,11 @@ bool newIP::init() {
 	
 	FileUtils::getInstance()->addSearchPath(FileUtils::getInstance()->getWritablePath(), true);
 	
-	/*if (UserDefault::getInstance()->getStringForKey("ip", "NEW") != "NEW") {
+	if (UserDefault::getInstance()->getStringForKey("ip", "NEW") != "NEW") {
 		this->runAction(CallFunc::create([](){
 			Director::getInstance()->pushScene(Home::createScene());
 		}));
-	}*/
+	}
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
