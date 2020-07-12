@@ -1,4 +1,4 @@
-#include "TrackpadScene2.h"
+#include "TrackpadScene.h"
 
 Scene* Trackpad::createScene() {
     return Trackpad::create();
