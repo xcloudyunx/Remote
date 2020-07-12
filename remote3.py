@@ -477,7 +477,7 @@ def receiver(utility):
 		data, address = server.recvfrom(4096)
 		data = data.decode()
 		if data == "exit":
-			print("Exit ", utility)
+			print("exit", utility)
 			return
 		if utility == "trackpad":
 			threading.Thread(target=trackpad, args=(data,)).start()

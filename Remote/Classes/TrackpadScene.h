@@ -1,5 +1,5 @@
-#ifndef __TRACKPAD_SCENE_H__
-#define __TRACKPAD_SCENE_H__
+#ifndef __TRACKPAD_SCENE2_H__
+#define __TRACKPAD_SCENE2_H__
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
@@ -31,22 +31,25 @@ private:
 	int _server;
 	sockaddr_in _serverAddr;
 	
-	int _touches = 0;
-	bool _firstMove = false;
-	bool _click = false;
-	bool _move = false;
-	bool _dragPotential = false;
-	bool _drag = false;
-	bool _scroll = false;
-	bool _zoom = false;
-	double _zoomThreshold = 0;
-	std::string _triple;
-	double _showThreshold = 0;
-	std::string _quad;
-
-
-	void move(const std::vector<Touch*> &touches);
+	std::string _state;
+	std::vector<Touch*> _touches;
+	
+	int _num = 0;
+	
+	Vec2 _midPoint;
+	float _zoomThreshold;
+	float _showThreshold;
+	
+	virtual bool onTouchBegan(Touch* touch, Event* event);
+	virtual void onTouchMoved(Touch* touch, Event* event);
+	virtual void onTouchEnded(Touch* touch, Event* event);
+	
+	void move(Vec2 deltaPos);
+	void scroll(Vec2 deltaPos);
+	void zoom(Vec2 deltaPos, Vec2 newPos, Vec2 oldPos);
+	void altTab(Vec2 deltaPos);
+	
 	void SEND(const char* msg);
 };
 
-#endif // __TRACKPAD_SCENE_H__
+#endif // __TRACKPAD_SCENE2_H__
