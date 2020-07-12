@@ -477,6 +477,7 @@ def receiver(utility):
 		data, address = server.recvfrom(4096)
 		data = data.decode()
 		if data == "exit":
+			print("Exit ", utility)
 			return
 		if utility == "trackpad":
 			threading.Thread(target=trackpad, args=(data,)).start()
@@ -517,13 +518,17 @@ def trackpad(data):
 		pyautogui.hotkey("win", "tab")
 	elif data == "show desktop":
 		pyautogui.hotkey("win", "d")
+	elif data == "show start":
+		pyautogui.keyDown("alt")
 	elif data == "show next":
-		pyautogui.hotkey("ctrl", "alt", "tab")
+		pyautogui.hotkey("tab")
 	elif data == "show prev":
-		pyautogui.hotkey("ctrl", "alt", "shift", "tab")
+		pyautogui.hotkey("shift", "tab")
 	elif data == "show end":
-		pyautogui.press("enter")
-		
+		pyautogui.keyUp("alt")
+	
+	elif data == "action centre":
+		pyautogui.hotkey("win", "a")
 	elif data == "desk next":
 		pyautogui.hotkey("win", "ctrl", "right")
 	elif data == "desk prev":

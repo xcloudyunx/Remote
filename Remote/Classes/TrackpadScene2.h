@@ -36,11 +36,18 @@ private:
 	
 	int _num = 0;
 	
+	Vec2 _midPoint;
+	float _zoomThreshold;
+	float _showThreshold;
+	
 	virtual bool onTouchBegan(Touch* touch, Event* event);
 	virtual void onTouchMoved(Touch* touch, Event* event);
 	virtual void onTouchEnded(Touch* touch, Event* event);
 	
 	void move(Vec2 deltaPos);
+	void scroll(Vec2 deltaPos);
+	void zoom(Vec2 deltaPos, Vec2 newPos, Vec2 oldPos);
+	void altTab(Vec2 deltaPos);
 	
 	void SEND(const char* msg);
 };

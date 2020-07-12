@@ -56,24 +56,14 @@ bool Trackpad::init() {
 }
 
 bool Trackpad::onTouchBegan(Touch* touch, Event* event) {
-	if (_state == "") {
-		_state = "left click";
-	}
-	else if (_state == "potential double") {
-		_state = "double";
-	}
-	else if (_state == "move") {
-		_state = "add while move";
-	}
-	else if (_state == "left click") {
-		_state = "right click";
-	}
-	else if (_state == "right click") {
-		_state = "search";
-	}
-	else if (_state == "search") {
-		_state = "action centre";
-	}
+	if (_state == "") _state = "left click";
+	else if (_state == "potential double") _state = "double";
+	else if (_state == "move") _state = "add while move 2";
+	else if (_state == "left click") _state = "right click";
+	else if (_state == "right click") _state = "search";
+	else if (_state == "add while move 2") _state = "add while move 3";
+	else if (_state == "search") _state = "action centre";
+	else if (_state == "add while move 3") _state = "add while move 4";
 	
 	log("%s", _state.c_str());
 	_touches.push_back(touch);
@@ -90,7 +80,7 @@ void Trackpad::onTouchMoved(Touch* touch, Event* event) {
 			_state = "drag start";
 			SEND(_state.c_str());
 		}
-		else if (_state == "right click" || _state == "add while move") {
+		else if (_state == "right click" || _state == "add while move 2") {
 			_num++;
 			if (_num < 5) return;
 			_num = 0;
@@ -104,6 +94,11 @@ void Trackpad::onTouchMoved(Touch* touch, Event* event) {
 			// greater than 90 degrees between fingers
 			if (delta[0].dot(delta[1]) == 0 || delta[0].dot(delta[1])/(delta[0].length()*delta[1].length()) <= 0) {
 				_state = "zoom";
+				_midPoint = Vec2(0, 0);
+				for (auto i : _touches) {
+					_midPoint += i->getStartLocation();
+				}
+				_midPoint = _midPoint / _touches.size();
 			}
 			// vertical motion and less than 50 degrees from vertical
 			else if ((dir0 == dir1 || std::isnan(dir0) || std::isnan(dir1)) && ((angle0 >= 40.0f && angle0 <= 140.0f) || delta[0].isZero()) && ((angle1 >= 40.0f && angle1 <= 140.0f) || delta[1].isZero())) {
@@ -113,19 +108,40 @@ void Trackpad::onTouchMoved(Touch* touch, Event* event) {
 				_state = "two finger movement";
 			}
 		}
-		else if (_state == "search") {
-			_state = "three finger movement"; //show all/desktop/next/prev
+		else if (_state == "search" || _state == "add while move 3") {
+			_num++;
+			if (_num < 5) return;
+			_num = 0;
+			// 45 degree cutoff between vertical and horizontal movements
+			if (abs(deltaPos.x) > abs(deltaPos.y)) {
+				_state = "alt tab";
+				SEND("show start");
+			}
+			else if (deltaPos.y > 0) _state = "show all";
+			else if (deltaPos.y < 0) _state = "show desktop";
+			else _state = "three finger movement";
 			
 		}
-		else if (_state == "action centre") {
-			_state = "four finger movement"; //desk prev/next
+		else if (_state == "action centre" || _state == "add while move 4") {
+			_num++;
+			if (_num < 5) return;
+			_num = 0;
+			if (deltaPos.x > 0) _state = "desk next";
+			else if (deltaPos.x < 0) _state = "desk prev";
+			else _state = "four finger movement"; //desk prev/next
 		}
 	}
 	
 	deltaPos = touch->getLocation()-touch->getPreviousLocation();
 	if (_state == "move" || _state == "drag start") {
 		move(deltaPos);
-	}
+	} else if (_state == "scroll") {
+		scroll(deltaPos);
+	} else if (_state == "zoom") {
+		zoom(deltaPos, touch->getLocation(), touch->getPreviousLocation());
+	} else if (_state == "alt tab") {
+		altTab(deltaPos);
+	} 
 	
 	log("%s", _state.c_str());
 }
@@ -148,7 +164,8 @@ void Trackpad::onTouchEnded(Touch* touch, Event* event) {
 		} else {
 			if (_state == "double") _state = "left click";
 			else if (_state == "drag start") _state = "drag end";
-			else if (_state == "move") _state = "";
+			else if (_state == "move" || _state == "scroll") _state = "";
+			else if (_state == "alt tab") _state = "show end";
 			SEND(_state.c_str());
 			_state = "";
 		}
@@ -157,11 +174,48 @@ void Trackpad::onTouchEnded(Touch* touch, Event* event) {
 }
 
 void Trackpad::move(Vec2 deltaPos) {
-	double v = sqrt(pow(deltaPos.x, 2) + pow(deltaPos.y, 2)) * 60;
-	v = pow(v, 0.65f)*1.5f;
+	double v = pow(deltaPos.length() * 60, 0.65f) * 1.5f;
 	deltaPos *= v/60;
 	std::string tmp = "move " + std::to_string(deltaPos.x) + " " + std::to_string(-deltaPos.y);
 	SEND(tmp.c_str());
+}
+
+void Trackpad::scroll(Vec2 deltaPos) {
+	double v = pow(deltaPos.length() * 60, 0.8f);
+	deltaPos *= v/60;
+	std::string tmp = "scroll " + std::to_string((int) -deltaPos.y);
+	SEND(tmp.c_str());
+}
+
+void Trackpad::zoom(Vec2 deltaPos, Vec2 newPos, Vec2 oldPos) {
+	double v = pow(deltaPos.length() * 60, 0.5f);
+	if (newPos.distanceSquared(_midPoint) > oldPos.distanceSquared(_midPoint)) {
+		_zoomThreshold += v;
+	} else {
+		_zoomThreshold -= v;
+	}
+	if (_zoomThreshold < -50.0f) {
+		SEND("zoom out");
+	} else if (_zoomThreshold > 50.0f) {
+		SEND("zoom in");
+	}
+	_zoomThreshold = fmod(_zoomThreshold, 50.0f);
+	
+}
+
+void Trackpad::altTab(Vec2 deltaPos) {
+	double v = pow(deltaPos.length() * 60, 0.5f);
+	if (deltaPos.x > 0) {
+		_showThreshold += v;
+	} else if (deltaPos.x < 0) {
+		_showThreshold -= v;
+	}
+	if (_showThreshold > 100.0f) {
+		SEND("show next");
+	} else if (_showThreshold < -100.0f) {
+		SEND("show prev");
+	}
+	_showThreshold = fmod(_showThreshold, 100.0f);
 }
 
 void Trackpad::SEND(const char* msg) {
