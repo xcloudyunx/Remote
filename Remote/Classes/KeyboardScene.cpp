@@ -8,12 +8,15 @@ bool Keyboard::init() {
     if (!Scene::init()) {
         return false;
     }
+	
+	this->setName("Keyboard");
 
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
 	auto background = Sprite::create("background.png");
 	background->setPosition(visibleSize/2);
+	background->setScale(std::max(visibleSize.width, visibleSize.height));
 	this->addChild(background);
 
 	_server = socket(AF_INET, SOCK_DGRAM, 0);
@@ -27,8 +30,9 @@ bool Keyboard::init() {
 	board->openKeyboard();
 	this->addChild(board);
 	
-	auto back = Button::create("default.png");
-	back->setPosition(Vec2(visibleSize.width/20, visibleSize.height-visibleSize.width/20));
+	auto padding = std::max(visibleSize.width, visibleSize.height)/20;
+	auto back = Button::create("back.png");
+	back->setPosition(Vec2(padding, visibleSize.height-padding));
 	back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
 		switch (type) {
 			case Widget::TouchEventType::BEGAN:

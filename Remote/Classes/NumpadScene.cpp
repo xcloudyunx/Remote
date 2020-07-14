@@ -8,12 +8,15 @@ bool Numpad::init() {
     if (!Scene::init()) {
         return false;
     }
+	
+	this->setName("Numpad");
 
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
 	auto background = Sprite::create("background.png");
 	background->setPosition(visibleSize/2);
+	background->setScale(std::max(visibleSize.width, visibleSize.height));
 	this->addChild(background);
 
 	_server = socket(AF_INET, SOCK_DGRAM, 0);
@@ -28,8 +31,9 @@ bool Numpad::init() {
 	pad->openKeyboard();
 	this->addChild(pad);
 	
-	auto back = Button::create("default.png");
-	back->setPosition(Vec2(visibleSize.width/20, visibleSize.height-visibleSize.width/20));
+	auto padding = std::max(visibleSize.width, visibleSize.height)/20;
+	auto back = Button::create("back.png");
+	back->setPosition(Vec2(padding, visibleSize.height-padding));
 	back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
 		switch (type) {
 			case Widget::TouchEventType::BEGAN:

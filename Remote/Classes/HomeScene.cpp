@@ -8,13 +8,16 @@ bool Home::init() {
     if (!Scene::init()) {
         return false;
     }
+	
+	this->setName("Home");
 
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
-	auto background = Sprite::create("background.png");
-	background->setPosition(visibleSize/2);
-	this->addChild(background);
+	_background = Sprite::create("background.png");
+	_background->setPosition(visibleSize/2);
+	_background->setScale(std::max(visibleSize.width, visibleSize.height));
+	this->addChild(_background);
 	
 	_server = Server::getInstance();
 	if (!_server) {

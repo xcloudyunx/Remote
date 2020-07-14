@@ -24,6 +24,8 @@
 
 #include "AppDelegate.h"
 #include "newIPScene.h"
+#include "TrackpadScene.h"
+#include "KeyboardScene.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -107,22 +109,30 @@ bool AppDelegate::applicationDidFinishLaunching() {
     return true;
 }
 
-/*void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
+void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
 {
+	log("screen rotated");
 	auto director = Director::getInstance();
-	auto glview = director->getOpenGLView();
-	if (glview) {
-		glview->setFrameSize(newWidth, newHeight);
-		
-		if (newWidth > newHeight) {
-			glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
-		} else {
-			glview->setDesignResolutionSize(designResolutionSize.height, designResolutionSize.width, ResolutionPolicy::NO_BORDER);
+	auto scene = director->getRunningScene();
+	if (scene) {
+		if (scene->getName() == "newIP" || scene->getName() == "Trackpad" || scene->getName() == "Keyboard" || scene->getName() == "Home") {
+			auto glview = director->getOpenGLView();
+			glview->setFrameSize(newWidth, newHeight);
+				
+			if (newWidth > newHeight) {
+				glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
+			} else {
+				glview->setDesignResolutionSize(designResolutionSize.height, designResolutionSize.width, ResolutionPolicy::NO_BORDER);
+			}
+			
+			if (scene->getName() == "newIP") director->replaceScene(newIP::createScene());
+			else if (scene->getName() == "Trackpad") director->replaceScene(Trackpad::createScene());
+			else if (scene->getName() == "Keyboard") director->replaceScene(Keyboard::createScene());
+			else if (scene->getName() == "Home") director->replaceScene(Home::createScene());
 		}
-		
-		director->getRunningScene()->setPosition(designResolutionSize/2);
 	}
-}*/ //fix this later
+
+}
 
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
 void AppDelegate::applicationDidEnterBackground() {

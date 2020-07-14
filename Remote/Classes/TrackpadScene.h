@@ -27,7 +27,6 @@ private:
 	std::string IP = UserDefault::getInstance()->getStringForKey("ip");
 	const int PORT = 1235;
 
-	Size _visibleSize;
 	int _server;
 	sockaddr_in _serverAddr;
 	

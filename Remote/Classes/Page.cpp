@@ -24,13 +24,14 @@ bool Page::init(int p, int &r, int &c) {
 	
 	for (int i=0; i<ROWS; i++) {
 		for (int j=0; j<COLS; j++) {
-			Button* btn = Button::create();
+			auto btn = Button::create("buttonNormal.png", "buttonSelected.png");
+			auto icon = Sprite::create();
+			icon->setName("icon");
+			icon->setPosition(btn->getContentSize()/2);
+			btn->addChild(icon);
 			if (FileUtils::getInstance()->isFileExist(std::to_string((p-1)*TOTAL+i*COLS+j)+".png")) {
-				btn->loadTextureNormal(std::to_string((p-1)*TOTAL+i*COLS+j)+".png");
-			} else {
-				btn->loadTextureNormal("default.png");
+				icon->setTexture(std::to_string((p-1)*TOTAL+i*COLS+j)+".png");
 			}
-			btn->setAnchorPoint(Vec2(0, 1));
 			btn->setName(std::to_string((p-1)*TOTAL+i*COLS+j));
 			btn->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
 				switch (type) {
@@ -58,26 +59,45 @@ bool Page::init(int p, int &r, int &c) {
 }
 
 void Page::update() {
-	float scale = std::min((_visibleSize.width-4*_size)/((*_columns)*_size*2-_size), (_visibleSize.height-2*_size)/((*_rows)*_size*2-_size));
-	float xpadding = (_visibleSize.width - ((*_columns)*_size*2-_size)*scale)/2;
-	float ypadding = _visibleSize.height - (_visibleSize.height - ((*_rows)*_size*2-_size)*scale)/2;
-	_padding = xpadding;
-	
-	for (int i=0; i<ROWS; i++) {
-		for (int j=0; j<COLS; j++) {
-			if (i < *_rows && j < *_columns) {
-				_icons[i*COLS+j]->setScale(scale);
-				_icons[i*COLS+j]->setPosition(Vec2(xpadding+_size*2*scale*j, ypadding-_size*2*scale*i));
-				_icons[i*COLS+j]->setVisible(true);
-			} else {
-				_icons[i*COLS+j]->setVisible(false);
+	if (_visibleSize.width >= _visibleSize.height) {
+		float scale = std::min((_visibleSize.width-2*_size)/((*_columns)*_size*2-_size), (_visibleSize.height-2*_size)/((*_rows)*_size*2-_size));
+		float xpadding = (_visibleSize.width - ((*_columns)*_size*2-_size)*scale)/2;
+		float ypadding = _visibleSize.height - (_visibleSize.height - ((*_rows)*_size*2-_size)*scale)/2;
+		_padding = xpadding;
+		
+		for (int i=0; i<ROWS; i++) {
+			for (int j=0; j<COLS; j++) {
+				if (i < *_rows && j < *_columns) {
+					_icons[i*COLS+j]->setScale(scale);
+					_icons[i*COLS+j]->setPosition(Vec2(xpadding + _size/2 + _size*2*scale*j, ypadding - _size/2 - _size*2*scale*i));
+					_icons[i*COLS+j]->setVisible(true);
+				} else {
+					_icons[i*COLS+j]->setVisible(false);
+				}
+			}
+		}
+	} else {
+		float scale = std::min((_visibleSize.width-2*_size)/((*_rows)*_size*2-_size), (_visibleSize.height-2*_size)/((*_columns)*_size*2-_size));
+		float xpadding = (_visibleSize.width - ((*_rows)*_size*2-_size)*scale)/2;
+		float ypadding = _visibleSize.height - (_visibleSize.height - ((*_columns)*_size*2-_size)*scale)/2;
+		_padding = xpadding;
+		
+		for (int i=0; i<ROWS; i++) {
+			for (int j=0; j<COLS; j++) {
+				if (i < *_rows && j < *_columns) {
+					_icons[i*COLS+j]->setScale(scale);
+					_icons[i*COLS+j]->setPosition(Vec2(_visibleSize.width - xpadding - _size/2 - _size*2*scale*i, ypadding - _size/2 - _size*2*scale*j));
+					_icons[i*COLS+j]->setVisible(true);
+				} else {
+					_icons[i*COLS+j]->setVisible(false);
+				}
 			}
 		}
 	}
 }
 
 void Page::sync(int id) {
-	_icons[id%TOTAL]->loadTextureNormal(std::to_string(id)+".png");
+	dynamic_cast<Sprite*>(_icons[id%TOTAL]->getChildByName("icon"))->setTexture(std::to_string(id)+".png");
 }
 
 void Page::show() {

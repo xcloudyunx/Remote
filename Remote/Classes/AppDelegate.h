@@ -48,7 +48,7 @@ public:
     virtual bool applicationDidFinishLaunching();
 	
 	
-    //virtual void applicationScreenSizeChanged(int, int);
+    virtual void applicationScreenSizeChanged(int newWidth, int newHeight);
 
     /**
     @brief  Called when the application moves to the background

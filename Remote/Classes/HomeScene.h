@@ -20,10 +20,14 @@ public:
 	static Scene* createScene();
 
 	virtual bool init();
+	
+	void updateOrientation(int newWidth, int newHeight);
 
     CREATE_FUNC(Home);
 
 private:
+	Sprite* _background;
+
 	Server* _server;
 	
 	int _rows;

@@ -19,6 +19,7 @@ bool Server::init() {
 	serverAddr.sin_family = AF_INET; 
 	serverAddr.sin_port = htons(PORT); 
 	serverAddr.sin_addr.s_addr = inet_addr(IP.c_str());
+	log("Attempting to connect to %s", IP.c_str());
 	if (connect(_server, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) < 0) {	//add a timeout???
 		log("Connection Failed");
 		UserDefault::getInstance()->setStringForKey("ip", "NEW");

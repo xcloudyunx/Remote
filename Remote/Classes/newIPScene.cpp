@@ -9,6 +9,8 @@ bool newIP::init() {
         return false;
     }
 	
+	this->setName("newIP");
+	
 	FileUtils::getInstance()->addSearchPath(FileUtils::getInstance()->getWritablePath(), true);
 	
 	if (UserDefault::getInstance()->getStringForKey("ip", "NEW") != "NEW") {
@@ -22,6 +24,7 @@ bool newIP::init() {
 	
 	auto background = Sprite::create("background.png");
 	background->setPosition(visibleSize/2);
+	background->setScale(std::max(visibleSize.width, visibleSize.height));
 	this->addChild(background);
 	
 	auto ipInput = EditBox::create(Size(800, 80), Scale9Sprite::create("ip.png"));

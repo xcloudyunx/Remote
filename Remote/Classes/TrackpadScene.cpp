@@ -8,12 +8,15 @@ bool Trackpad::init() {
     if (!Scene::init()) {
         return false;
     }
+	
+	this->setName("Trackpad");
 
-    _visibleSize = Director::getInstance()->getVisibleSize();
+    Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
 	auto background = Sprite::create("background.png");
-	background->setPosition(_visibleSize/2);
+	background->setPosition(visibleSize/2);
+	background->setScale(std::max(visibleSize.width, visibleSize.height));
 	this->addChild(background);
 
 	_server = socket(AF_INET, SOCK_DGRAM, 0);
@@ -21,8 +24,9 @@ bool Trackpad::init() {
 	_serverAddr.sin_port = htons(PORT); 
 	_serverAddr.sin_addr.s_addr = inet_addr(IP.c_str());
 	
-	auto back = Button::create("default.png");
-	back->setPosition(Vec2(_visibleSize.width/20, _visibleSize.height-_visibleSize.width/20));
+	auto padding = std::max(visibleSize.width, visibleSize.height)/20;
+	auto back = Button::create("back.png");
+	back->setPosition(Vec2(padding, visibleSize.height-padding));
 	back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
 		switch (type) {
 			case Widget::TouchEventType::BEGAN:
