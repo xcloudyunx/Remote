@@ -21,7 +21,9 @@ public:
 
 	virtual bool init();
 	
-	void updateOrientation(int newWidth, int newHeight);
+	virtual void onEnter();
+	
+	void updateOrientation();
 
     CREATE_FUNC(Home);
 

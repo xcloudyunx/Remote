@@ -31,8 +31,6 @@ public:
 	float getLeft();
 	float getRight();
 private:
-	Size _visibleSize;
-	
 	Server* _server;
 	
 	int _size;

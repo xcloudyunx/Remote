@@ -12,8 +12,6 @@ Page* Page::create(int p, int &r, int &c) {
 }
 
 bool Page::init(int p, int &r, int &c) {
-	_visibleSize = Director::getInstance()->getVisibleSize();
-	
 	_server = Server::getInstance();
 	
 	_size = 100;
@@ -27,6 +25,7 @@ bool Page::init(int p, int &r, int &c) {
 			auto btn = Button::create("buttonNormal.png", "buttonSelected.png");
 			auto icon = Sprite::create();
 			icon->setName("icon");
+			icon->setAnchorPoint(Vec2(0.5f, 0.43f));
 			icon->setPosition(btn->getContentSize()/2);
 			btn->addChild(icon);
 			if (FileUtils::getInstance()->isFileExist(std::to_string((p-1)*TOTAL+i*COLS+j)+".png")) {
@@ -36,10 +35,13 @@ bool Page::init(int p, int &r, int &c) {
 			btn->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
 				switch (type) {
 					case Widget::TouchEventType::BEGAN:
+						dynamic_cast<Node*>(dynamic_cast<Node*>(sender)->getChildByName("icon"))->setAnchorPoint(Vec2(0.5f, 0.5f));
 						break;
 					case Widget::TouchEventType::CANCELED:
+						dynamic_cast<Node*>(dynamic_cast<Node*>(sender)->getChildByName("icon"))->setAnchorPoint(Vec2(0.5f, 0.43f));
 						break;
 					case Widget::TouchEventType::ENDED:
+						dynamic_cast<Node*>(dynamic_cast<Node*>(sender)->getChildByName("icon"))->setAnchorPoint(Vec2(0.5f, 0.43f));
 						_server->SEND(dynamic_cast<Button*>(sender)->getName().c_str());
 						break;
 					default:
@@ -59,17 +61,19 @@ bool Page::init(int p, int &r, int &c) {
 }
 
 void Page::update() {
-	if (_visibleSize.width >= _visibleSize.height) {
-		float scale = std::min((_visibleSize.width-2*_size)/((*_columns)*_size*2-_size), (_visibleSize.height-2*_size)/((*_rows)*_size*2-_size));
-		float xpadding = (_visibleSize.width - ((*_columns)*_size*2-_size)*scale)/2;
-		float ypadding = _visibleSize.height - (_visibleSize.height - ((*_rows)*_size*2-_size)*scale)/2;
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	
+	if (visibleSize.width >= visibleSize.height) {
+		float scale = std::min((visibleSize.width-2*_size)/((*_columns)*_size*2-_size), (visibleSize.height-2*_size)/((*_rows)*_size*2-_size));
+		float xpadding = (visibleSize.width - ((*_columns)*_size*2-_size)*scale)/2;
+		float ypadding = visibleSize.height - (visibleSize.height - ((*_rows)*_size*2-_size)*scale)/2;
 		_padding = xpadding;
 		
 		for (int i=0; i<ROWS; i++) {
 			for (int j=0; j<COLS; j++) {
 				if (i < *_rows && j < *_columns) {
 					_icons[i*COLS+j]->setScale(scale);
-					_icons[i*COLS+j]->setPosition(Vec2(xpadding + _size/2 + _size*2*scale*j, ypadding - _size/2 - _size*2*scale*i));
+					_icons[i*COLS+j]->setPosition(Vec2(xpadding + _size*scale/2 + _size*2*scale*j, ypadding - _size*scale/2 - _size*2*scale*i));
 					_icons[i*COLS+j]->setVisible(true);
 				} else {
 					_icons[i*COLS+j]->setVisible(false);
@@ -77,16 +81,16 @@ void Page::update() {
 			}
 		}
 	} else {
-		float scale = std::min((_visibleSize.width-2*_size)/((*_rows)*_size*2-_size), (_visibleSize.height-2*_size)/((*_columns)*_size*2-_size));
-		float xpadding = (_visibleSize.width - ((*_rows)*_size*2-_size)*scale)/2;
-		float ypadding = _visibleSize.height - (_visibleSize.height - ((*_columns)*_size*2-_size)*scale)/2;
+		float scale = std::min((visibleSize.width-2*_size)/((*_rows)*_size*2-_size), (visibleSize.height-2*_size)/((*_columns)*_size*2-_size));
+		float xpadding = (visibleSize.width - ((*_rows)*_size*2-_size)*scale)/2;
+		float ypadding = visibleSize.height - (visibleSize.height - ((*_columns)*_size*2-_size)*scale)/2;
 		_padding = xpadding;
 		
 		for (int i=0; i<ROWS; i++) {
 			for (int j=0; j<COLS; j++) {
 				if (i < *_rows && j < *_columns) {
 					_icons[i*COLS+j]->setScale(scale);
-					_icons[i*COLS+j]->setPosition(Vec2(_visibleSize.width - xpadding - _size/2 - _size*2*scale*i, ypadding - _size/2 - _size*2*scale*j));
+					_icons[i*COLS+j]->setPosition(Vec2(visibleSize.width - xpadding - _size*scale/2 - _size*2*scale*i, ypadding - _size*scale/2 - _size*2*scale*j));
 					_icons[i*COLS+j]->setVisible(true);
 				} else {
 					_icons[i*COLS+j]->setVisible(false);
@@ -117,5 +121,6 @@ float Page::getLeft() {
 }
 
 float Page::getRight() {
-	return _visibleSize.width-_padding;
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	return visibleSize.width-_padding;
 }

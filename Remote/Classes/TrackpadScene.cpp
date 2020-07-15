@@ -27,7 +27,7 @@ bool Trackpad::init() {
 	auto padding = std::max(visibleSize.width, visibleSize.height)/20;
 	auto back = Button::create("back.png");
 	back->setPosition(Vec2(padding, visibleSize.height-padding));
-	back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
+	back->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
 		switch (type) {
 			case Widget::TouchEventType::BEGAN:
 				break;

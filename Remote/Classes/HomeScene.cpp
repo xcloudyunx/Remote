@@ -127,3 +127,16 @@ void Home::changePage(int page) {
 		}
 	}
 }
+
+void Home::updateOrientation() {
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	_background->setPosition(visibleSize/2);
+	for (auto i : _p) {
+		i->update();
+	}
+}
+
+void Home::onEnter() {
+	Scene::onEnter();
+	this->updateOrientation();
+}

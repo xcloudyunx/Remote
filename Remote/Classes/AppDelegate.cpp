@@ -128,7 +128,7 @@ void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
 			if (scene->getName() == "newIP") director->replaceScene(newIP::createScene());
 			else if (scene->getName() == "Trackpad") director->replaceScene(Trackpad::createScene());
 			else if (scene->getName() == "Keyboard") director->replaceScene(Keyboard::createScene());
-			else if (scene->getName() == "Home") director->replaceScene(Home::createScene());
+			else if (scene->getName() == "Home") dynamic_cast<Home*>(scene)->updateOrientation();
 		}
 	}
 
