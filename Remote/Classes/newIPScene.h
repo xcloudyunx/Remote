@@ -5,6 +5,7 @@
 #include "ui/CocosGUI.h"
 
 #include "HomeScene.h"
+#include "Server.h"
 
 using namespace cocos2d;
 using namespace ui;

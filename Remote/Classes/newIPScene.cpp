@@ -43,5 +43,6 @@ bool newIP::init() {
 void newIP::editBoxReturn(EditBox* editBox) {
 	log("DONE");
 	UserDefault::getInstance()->setStringForKey("ip", editBox->getText());
-	Director::getInstance()->pushScene(Home::createScene());
+	auto s = Server::getInstance();
+	if (s) Director::getInstance()->pushScene(Home::createScene());
 }
