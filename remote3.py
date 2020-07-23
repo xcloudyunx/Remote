@@ -65,26 +65,51 @@ class taskBarIcon(wx.adv.TaskBarIcon):
 
 class settingsPopup(wx.Dialog):
 	def __init__(self, parent, r, c, p):
-		super().__init__(parent=parent, title='Settings', size=(310, 290))
+		#super().__init__(parent=parent, title='Settings', size=(310, 290))
+		super().__init__(parent=parent, title='Settings')
 		self.SetFont(FONT)
 
 		self.panel = wx.Panel(self)
 		
 		# options for customising number of rows, columns and pages
-		rows = wx.StaticText(parent=self.panel, pos=(50, 43), label="Rows")
-		self.rows = wx.SpinCtrl(parent=self.panel, pos=(120, 40), size=(75, 25), min=1, max=ROWS, initial=r)
-		columns = wx.StaticText(parent=self.panel, pos=(50, 93), label="Columns")
-		self.columns = wx.SpinCtrl(parent=self.panel, pos=(120, 90), size=(75, 25), min=1, max=COLS, initial=c)
-		pages = wx.StaticText(parent=self.panel, pos=(50, 143), label="Pages")
-		self.pages = wx.SpinCtrl(parent=self.panel, pos=(120, 140), size=(75, 25), min=1, initial=p)
+		rows = wx.StaticText(parent=self.panel, label="Rows")
+		self.rows = wx.SpinCtrl(parent=self.panel, min=1, max=ROWS, initial=r)
+		columns = wx.StaticText(parent=self.panel, label="Columns")
+		self.columns = wx.SpinCtrl(parent=self.panel, min=1, max=COLS, initial=c)
+		pages = wx.StaticText(parent=self.panel, label="Pages")
+		self.pages = wx.SpinCtrl(parent=self.panel, min=1, initial=p)
 		
 		# save button
-		self.save = wx.Button(self.panel, pos=(50, 210), label="Save")
+		self.save = wx.Button(self.panel, label="Save")
 		self.save.Bind(wx.EVT_BUTTON, self.update)
 		
 		# cancel button
-		self.cancel = wx.Button(self.panel, pos=(170, 210), label="Cancel")
+		self.cancel = wx.Button(self.panel, label="Cancel")
 		self.cancel.Bind(wx.EVT_BUTTON, self.exit)
+		
+		
+		# positioning
+		topSizer = wx.BoxSizer(wx.VERTICAL)
+		gridSizer = wx.FlexGridSizer(rows=3, cols=2, vgap=20, hgap=20)
+		gridSizer.AddGrowableCol(1)
+		buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+		
+		gridSizer.Add(rows)
+		gridSizer.Add(self.rows, flag=wx.EXPAND)
+		gridSizer.Add(columns)
+		gridSizer.Add(self.columns, flag=wx.EXPAND)
+		gridSizer.Add(pages)
+		gridSizer.Add(self.pages, flag=wx.EXPAND)
+		
+		buttonSizer.Add(self.save, flag=wx.ALL, border=5)
+		buttonSizer.Add(self.cancel, flag=wx.ALL, border=5)
+		
+		topSizer.Add(gridSizer, flag=wx.ALL|wx.EXPAND, border=20)
+		topSizer.Add(wx.StaticLine(self.panel), flag=wx.ALL|wx.EXPAND, border=5)
+		topSizer.Add(buttonSizer, flag=wx.ALL|wx.CENTER, border=5)
+		
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
 		
 		self.ShowModal()
 		
@@ -106,7 +131,7 @@ class settingsPopup(wx.Dialog):
 
 class customisePopup(wx.Dialog):
 	def __init__(self, parent, pos, id, action):
-		super().__init__(parent=parent, title='Customise', pos=pos, size=(600, 300))
+		super().__init__(parent=parent, title='Customise', pos=pos)
 		self.SetFont(FONT)
 		
 		self.panel = wx.Panel(self)
@@ -115,41 +140,70 @@ class customisePopup(wx.Dialog):
 		self.id = id
 		
 		# options for selecting icon image
-		file = wx.StaticText(parent=self.panel, pos=(50, 44), label="Icon Image")
-		self.file = wx.FilePickerCtrl(parent=self.panel, pos=(120, 40), wildcard="Images (*.png)|*.png")
+		file = wx.StaticText(parent=self.panel, label="Icon Image")
+		self.file = wx.FilePickerCtrl(parent=self.panel, wildcard="Images (*.png)|*.png")
 		self.file.SetInitialDirectory(wx.GetHomeDir())
 		
-		self.clear = wx.Button(parent=self.panel, pos=(420, 40), label="Clear Image")
+		self.clear = wx.Button(parent=self.panel, label="Clear Image")
 		self.clear.Bind(wx.EVT_BUTTON, self.clearImage)
 		
 		##################################################################
 		# probably going to have to rewrite this cause its not very good
 		
 		# options for changing action type
-		actionType = wx.StaticText(parent=self.panel, pos=(50, 103), label="Type")
+		actionType = wx.StaticText(parent=self.panel, label="Type")
 		self.types = ["Trackpad", "Keyboard", "Numpad", "Script/File", "CMD", "Macro???"]
-		self.actionType = wx.Choice(parent=self.panel, pos=(120, 100), choices=self.types)
+		self.actionType = wx.Choice(parent=self.panel, choices=self.types)
 		self.actionType.Bind(wx.EVT_CHOICE, self.changeType)
 		
 		# options for changing action
-		act = wx.StaticText(parent=self.panel, pos=(50, 153), label="Command")
-		self.action = wx.TextCtrl(parent=self.panel, pos=(120, 150), value=action)
+		act = wx.StaticText(parent=self.panel, label="Command")
+		self.action = wx.TextCtrl(parent=self.panel, value=action)
 		self.action.Disable()
-		self.script = wx.FilePickerCtrl(parent=self.panel, pos=(120, 150))
+		self.script = wx.FilePickerCtrl(parent=self.panel)
 		self.script.SetInitialDirectory("Scripts")
 		self.script.GetTextCtrl().Destroy()
 		self.script.SetTextCtrl(self.action)
-		self.script.Hide()
+		self.script.GetPickerCtrl().Disable()
 		
 		######################################################################
 		
 		# save button
-		self.save = wx.Button(parent=self.panel, pos=(50, 220), label="Save")
+		self.save = wx.Button(parent=self.panel, label="Save")
 		self.save.Bind(wx.EVT_BUTTON, self.update)
 		
 		# cancel button
-		self.cancel = wx.Button(self.panel, pos=(170, 220), label="Cancel")
+		self.cancel = wx.Button(self.panel, label="Cancel")
 		self.cancel.Bind(wx.EVT_BUTTON, self.exit)
+		
+		# positioning
+		topSizer = wx.BoxSizer(wx.VERTICAL)
+		gridSizer = wx.FlexGridSizer(rows=3, cols=2, vgap=20, hgap=20)
+		gridSizer.AddGrowableCol(1)
+		sizerOne = wx.BoxSizer(wx.HORIZONTAL)
+		sizerTwo = wx.BoxSizer(wx.HORIZONTAL)
+		buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+		
+		gridSizer.Add(file)
+		sizerOne.Add(self.file, 1, flag=wx.RIGHT|wx.EXPAND, border=5)
+		sizerOne.Add(self.clear, flag=wx.LEFT, border=5)
+		gridSizer.Add(sizerOne, flag=wx.EXPAND)
+		gridSizer.Add(actionType)
+		gridSizer.Add(self.actionType, flag=wx.EXPAND)
+		gridSizer.Add(act)
+		sizerTwo.Add(self.action, 1, flag=wx.RIGHT|wx.EXPAND, border=5)
+		sizerTwo.Add(self.script, flag=wx.LEFT, border=5)
+		gridSizer.Add(sizerTwo, flag=wx.EXPAND)
+		
+		buttonSizer.Add(self.save, flag=wx.ALL, border=5)
+		buttonSizer.Add(self.cancel, flag=wx.ALL, border=5)
+		
+		topSizer.Add(gridSizer, flag=wx.ALL|wx.EXPAND, border=20)
+		topSizer.Add(wx.StaticLine(self.panel), flag=wx.ALL|wx.EXPAND, border=5)
+		topSizer.Add(buttonSizer, flag=wx.ALL|wx.CENTER, border=5)
+		
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
 		
 		self.ShowModal()
 
@@ -158,14 +212,12 @@ class customisePopup(wx.Dialog):
 	
 	def changeType(self, event):
 		self.action.Disable()
-		self.action.SetPosition((120, 150))
-		self.script.Hide()
+		self.script.GetPickerCtrl().Disable()
 		if self.getActionType() in ("Trackpad", "Keyboard", "Numpad"):
 			self.action.SetValue(self.getActionType().lower())
 		elif self.getActionType() == "Script/File":
 			self.action.Enable()
-			self.script.Show()
-			self.action.SetPosition((120, 151))
+			self.script.GetPickerCtrl().Enable()
 		elif self.getActionType() == "CMD":
 			self.action.Enable()
 		
