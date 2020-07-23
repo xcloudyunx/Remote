@@ -106,7 +106,7 @@ class settingsPopup(wx.Dialog):
 
 class customisePopup(wx.Dialog):
 	def __init__(self, parent, pos, id, action):
-		super().__init__(parent=parent, title='Customise', pos=pos, size=(400, 300))
+		super().__init__(parent=parent, title='Customise', pos=pos, size=(600, 300))
 		self.SetFont(FONT)
 		
 		self.panel = wx.Panel(self)
@@ -118,6 +118,9 @@ class customisePopup(wx.Dialog):
 		file = wx.StaticText(parent=self.panel, pos=(50, 44), label="Icon Image")
 		self.file = wx.FilePickerCtrl(parent=self.panel, pos=(120, 40), wildcard="Images (*.png)|*.png")
 		self.file.SetInitialDirectory(wx.GetHomeDir())
+		
+		self.clear = wx.Button(parent=self.panel, pos=(420, 40), label="Clear Image")
+		self.clear.Bind(wx.EVT_BUTTON, self.clearImage)
 		
 		##################################################################
 		# probably going to have to rewrite this cause its not very good
@@ -149,7 +152,10 @@ class customisePopup(wx.Dialog):
 		self.cancel.Bind(wx.EVT_BUTTON, self.exit)
 		
 		self.ShowModal()
-		
+
+	def clearImage(self, event):
+		self.file.SetPath("RESET")
+	
 	def changeType(self, event):
 		self.action.Disable()
 		self.action.SetPosition((120, 150))
@@ -191,15 +197,15 @@ class page(wx.Panel):
 		# create ROWS * COLS grid
 		for i in range(ROWS):
 			for j in range(COLS):
+				# create icon
+				
+				icon = wx.Button(parent=self, size=(SIZE+PADDING, SIZE+PADDING), id=(pageNumber-1)*TOTAL+i*COLS+j)
+			
 				# load icon image
 				if os.path.exists("Resources/"+str((pageNumber-1)*TOTAL+i*COLS+j)+".png"):
 					img = wx.Image("Resources/"+str((pageNumber-1)*TOTAL+i*COLS+j)+".png", wx.BITMAP_TYPE_ANY)
-				else:
-					img = wx.Image("Resources/default.png", wx.BITMAP_TYPE_ANY)
-					
-				# create icon
-				icon = wx.Button(parent=self, size=(SIZE+PADDING, SIZE+PADDING), id=(pageNumber-1)*TOTAL+i*COLS+j)
-				icon.SetBitmap(wx.Bitmap(img))
+					icon.SetBitmap(wx.Bitmap(img))
+				
 				icon.Bind(wx.EVT_BUTTON, self.GetParent().GetParent().customise)
 				
 				# add icon to list
@@ -223,17 +229,22 @@ class page(wx.Panel):
 			for j in range(COLS):
 				if i < rows and j < cols:
 					self.icons[i*COLS+j].SetSize(int(SIZE*scale+PADDING), int(SIZE*scale+PADDING))
-					img = self.icons[i*COLS+j].GetBitmap().ConvertToImage()
-					img.Rescale(int(scale*SIZE), int(scale*SIZE))
-					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
+					bmp = self.icons[i*COLS+j].GetBitmap()
+					if bmp:
+						img = bmp.ConvertToImage()
+						img.Rescale(int(scale*SIZE), int(scale*SIZE))
+						self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
 					self.icons[i*COLS+j].SetPosition(( int(xpadding + 2*SIZE*scale*j), int(ypadding + 2*SIZE*scale*i) ))
 					self.icons[i*COLS+j].Show()
 				else:
 					self.icons[i*COLS+j].Hide()
 	
 	def updateIcon(self, id, img):
-		img.Rescale(int(self.icons[id].GetBitmap().GetWidth()), int(self.icons[id].GetBitmap().GetHeight()))
-		self.icons[id].SetBitmap(wx.Bitmap(img))
+		if img == "RESET":
+			self.icons[id].SetBitmap(wx.Bitmap())
+		else:
+			img.Rescale(int(self.icons[id].GetBitmap().GetWidth()), int(self.icons[id].GetBitmap().GetHeight()))
+			self.icons[id].SetBitmap(wx.Bitmap(img))
 	
 class MainFrame(wx.Frame):    
 	def __init__(self):
@@ -262,6 +273,8 @@ class MainFrame(wx.Frame):
 		file.close()
 		file = open("Resources/updates.dat", "r")
 		self.updates = list(file.read())
+		for i in range(len(self.updates), self.numPages*TOTAL):
+			self.updates.append(0)
 		file.close()
 		
 		# changing page controller
@@ -359,12 +372,17 @@ class MainFrame(wx.Frame):
 		###########################################################
 		
 		if filename:
-			img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
-			s = 100.0/max(img.GetWidth(), img.GetHeight())
-			img.Rescale(int(img.GetWidth()*s), int(img.GetHeight()*s))
-			img.Resize(size=(SIZE, SIZE), pos=((SIZE-img.GetWidth())/2, (SIZE-img.GetHeight())/2));
-			img.SaveFile("Resources/"+str(id)+".png", wx.BITMAP_TYPE_PNG)
-			self.pages[id%TOTAL].updateIcon(id/TOTAL, img)
+			if filename == "RESET":
+				if os.path.exists("Resources/"+str(id)+".png"):
+					os.remove("Resources/"+str(id)+".png")
+					img = "RESET"
+			else:
+				img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+				s = 100.0/max(img.GetWidth(), img.GetHeight())
+				img.Rescale(int(img.GetWidth()*s), int(img.GetHeight()*s))
+				img.Resize(size=(SIZE, SIZE), pos=((SIZE-img.GetWidth())//2, (SIZE-img.GetHeight())//2));
+				img.SaveFile("Resources/"+str(id)+".png", wx.BITMAP_TYPE_PNG)
+			self.pages[id%TOTAL].updateIcon(id//TOTAL, img)
 			
 			if self.conn:
 				self.syncImage(id)
@@ -388,14 +406,16 @@ class MainFrame(wx.Frame):
 		
 	def syncImage(self, id):
 		print("SYNC IMAGE")
-		self.send("image")
-		time.sleep(1)
-		self.send(str(id))
-		time.sleep(1)
-		file = open("Resources/"+str(id)+".png", "rb")
-		lines = base64.b64encode(file.read()).decode()
-		file.close()
-		self.send(lines)
+		if os.path.exists("Resources/"+str(id)+".png", "rb"):
+			self.send("new image")
+			time.sleep(1)
+			self.send(str(id))
+			file = open("Resources/"+str(id)+".png", "rb")
+			lines = base64.b64encode(file.read()).decode()
+			file.close()
+			self.send(lines)
+		else:
+			self.send("reset image")
 		print("DONE")
 			
 	def connect(self):
