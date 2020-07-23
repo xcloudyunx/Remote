@@ -372,17 +372,19 @@ class MainFrame(wx.Frame):
 		###########################################################
 		
 		if filename:
+			img = ""
 			if filename == "RESET":
 				if os.path.exists("Resources/"+str(id)+".png"):
 					os.remove("Resources/"+str(id)+".png")
-					img = "RESET"
+				img = "RESET"
 			else:
 				img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
 				s = 100.0/max(img.GetWidth(), img.GetHeight())
 				img.Rescale(int(img.GetWidth()*s), int(img.GetHeight()*s))
 				img.Resize(size=(SIZE, SIZE), pos=((SIZE-img.GetWidth())//2, (SIZE-img.GetHeight())//2));
 				img.SaveFile("Resources/"+str(id)+".png", wx.BITMAP_TYPE_PNG)
-			self.pages[id%TOTAL].updateIcon(id//TOTAL, img)
+			print(id%TOTAL)
+			self.pages[id//TOTAL].updateIcon(id%TOTAL, img)
 			
 			if self.conn:
 				self.syncImage(id)
@@ -406,7 +408,7 @@ class MainFrame(wx.Frame):
 		
 	def syncImage(self, id):
 		print("SYNC IMAGE")
-		if os.path.exists("Resources/"+str(id)+".png", "rb"):
+		if os.path.exists("Resources/"+str(id)+".png"):
 			self.send("new image")
 			time.sleep(1)
 			self.send(str(id))
@@ -416,6 +418,9 @@ class MainFrame(wx.Frame):
 			self.send(lines)
 		else:
 			self.send("reset image")
+			time.sleep(1)
+			self.send(str(id))
+			
 		print("DONE")
 			
 	def connect(self):
