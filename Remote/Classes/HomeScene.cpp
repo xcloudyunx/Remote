@@ -61,17 +61,20 @@ bool Home::init() {
 		while (true) {
 			auto task = _server->RECV();
 			log("%s", task.c_str());
-			if (task == "image") {
+			if (task == "new image") {
 				auto id = stoi(_server->RECV());
 				std::string image = _server->RECV();
 				image = base64_decode(image);
 				auto path = FileUtils::getInstance()->getWritablePath();
-				FileUtils::getInstance()->addSearchPath(path, true);
 				FileUtils::getInstance()->writeStringToFile(image, path+std::to_string(id)+".png");
 				Director::getInstance()->getTextureCache()->removeTextureForKey(std::to_string(id)+".png");
 				Director::getInstance()->getScheduler()->performFunctionInCocosThread([&](){
 					_p[id/TOTAL]->sync(id);
 				});
+			} else if (task == "reset image") {
+				auto id = stoi(_server->RECV());
+				auto path = FileUtils::getInstance()->getWritablePath();
+				FileUtils::getInstance()->removeFile(path+std::to_string(id)+".png");
 			} else if (task == "grid") {
 				// CHECK IF USER HAS PREMIUM
 				_pages = stoi(_server->RECV());
