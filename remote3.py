@@ -1,4 +1,4 @@
-import wx, wx.adv, socket, pyautogui, threading, os, base64, time, sys
+import wx, wx.adv, socket, pyautogui, threading, os, base64, time, sys, pyqrcode
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 1235
@@ -13,7 +13,6 @@ PANELWIDTH = 1000
 PANELHEIGHT = 680
 SIZE = 100
 PADDING = 4
-FONT = 0
 
 pyautogui.FAILSAFE = False
 
@@ -63,11 +62,40 @@ class taskBarIcon(wx.adv.TaskBarIcon):
 		self.Destroy()
 		sys.exit()
 
+class connectionPopup(wx.Dialog):
+	def __init__(self, parent):
+		super().__init__(parent=parent, title='New Connection')
+
+		self.panel = wx.Panel(self)
+		
+		# generate IP and display
+		qrcode = pyqrcode.create(IP)
+		qrcode.png("Resources/IP.png", scale=10)
+		ip = wx.Image("Resources/IP.png", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+		ip = wx.StaticBitmap(parent=self.panel, bitmap=ip)
+		
+		# exit button
+		self.exitButton = wx.Button(parent=self.panel, label="Exit")
+		self.exitButton.Bind(wx.EVT_BUTTON, self.exit)
+		
+		# positioning
+		topSizer = wx.BoxSizer(wx.VERTICAL)
+		
+		topSizer.Add(ip, flag=wx.ALL|wx.CENTER, border=5)
+		topSizer.Add(wx.StaticLine(self.panel), flag=wx.ALL|wx.EXPAND, border=5)
+		topSizer.Add(self.exitButton, flag=wx.ALL|wx.CENTER, border=5)
+		
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
+		
+		self.ShowModal()
+		
+	def exit(self, event):
+		self.Destroy()
+
 class settingsPopup(wx.Dialog):
 	def __init__(self, parent, r, c, p):
-		#super().__init__(parent=parent, title='Settings', size=(310, 290))
 		super().__init__(parent=parent, title='Settings')
-		self.SetFont(FONT)
 
 		self.panel = wx.Panel(self)
 		
@@ -132,7 +160,6 @@ class settingsPopup(wx.Dialog):
 class customisePopup(wx.Dialog):
 	def __init__(self, parent, pos, id, action):
 		super().__init__(parent=parent, title='Customise', pos=pos)
-		self.SetFont(FONT)
 		
 		self.panel = wx.Panel(self)
 		
@@ -301,10 +328,7 @@ class page(wx.Panel):
 class MainFrame(wx.Frame):    
 	def __init__(self):
 		super().__init__(parent=None, title='Remote', size=(WIDTH, HEIGHT))
-		global FONT
-		FONT = self.GetFont()
-		FONT.SetPointSize(9)
-		self.SetFont(FONT)
+		#super().__init__(parent=None, title='Remote')
 		
 		# set locked sized
 		self.SetSizeHints((WIDTH, HEIGHT), (WIDTH, HEIGHT))
@@ -314,10 +338,9 @@ class MainFrame(wx.Frame):
 		# set window icon
 		self.SetIcon(wx.Icon("Resources/icon.png"))
 		
-		######################################################
-		# display IP		might change to a QR code?
-		ip = wx.StaticText(parent=self.panel, pos=(500, 650), label=IP)
-		#####################################################
+		# new connection button
+		newConn = wx.Button(parent=self.panel, label="New Connection")
+		newConn.Bind(wx.EVT_BUTTON, self.newConnection)
 		
 		# load settings/default values
 		file = open("Resources/settings.dat", "r")
@@ -330,12 +353,25 @@ class MainFrame(wx.Frame):
 		file.close()
 		
 		# changing page controller
-		self.currentPage = wx.SpinCtrl(parent=self.panel, pos=(700, 650), size=(75, 25), min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
+		#self.currentPage = wx.SpinCtrl(parent=self.panel, pos=(700, 650), size=(75, 25), min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
+		self.currentPage = wx.SpinCtrl(parent=self.panel, min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
 		self.currentPage.Bind(wx.EVT_SPINCTRL, self.changePage)
 		
 		# settings button
-		settings = wx.Button(parent=self.panel, label="Settings", pos=(800, 650))
+		#settings = wx.Button(parent=self.panel, label="Settings", pos=(800, 650))
+		settings = wx.Button(parent=self.panel, label="Settings")
 		settings.Bind(wx.EVT_BUTTON, self.changeSettings)
+		
+		# positioning
+		sizerOne = wx.BoxSizer(wx.HORIZONTAL)
+		
+		sizerOne.AddStretchSpacer()
+		sizerOne.Add(self.currentPage, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
+		sizerOne.Add(settings, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
+		sizerOne.Add(newConn, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
+		
+		self.panel.SetSizer(sizerOne)
+		sizerOne.Fit(self)
 		
 		# load commands
 		file = open("Resources/commands.dat", "r")
@@ -362,6 +398,9 @@ class MainFrame(wx.Frame):
 				self.pages[k].Show()
 			else:
 				self.pages[k].Hide()
+				
+	def newConnection(self, event):
+		connectionPopup(self)
 		
 	def changeSettings(self, event):
 		settingsPopup(self, self.rows, self.columns, self.numPages)
