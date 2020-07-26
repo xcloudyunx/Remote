@@ -139,7 +139,17 @@ void Home::updateOrientation() {
 	}
 }
 
+void Home::updateServer() {
+	_server = Server::getInstance();
+	if (!_server) {
+		this->runAction(CallFunc::create([]() {
+			Director::getInstance()->popScene();
+		}));
+	}
+}
+
 void Home::onEnter() {
 	Scene::onEnter();
 	this->updateOrientation();
+	this->updateServer();
 }

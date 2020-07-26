@@ -24,6 +24,8 @@ public:
 	virtual void onEnter();
 	
 	void updateOrientation();
+	
+	void updateServer();
 
     CREATE_FUNC(Home);
 

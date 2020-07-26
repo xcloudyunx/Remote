@@ -26,7 +26,7 @@
 #include "newIPScene.h"
 #include "TrackpadScene.h"
 #include "KeyboardScene.h"
-#include "Scene.h"
+#include "Server.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -152,6 +152,10 @@ void AppDelegate::applicationDidEnterBackground() {
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
 	Server::getInstance();
+	auto scene = director->getRunningScene();
+	if (scene) {
+		if (scene->getName() == "Home") dynamic_cast<Home*>(scene)->updateServer();
+	}
 
 #if USE_AUDIO_ENGINE
     AudioEngine::resumeAll();

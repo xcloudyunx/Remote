@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
 
 using namespace cocos2d;
 
