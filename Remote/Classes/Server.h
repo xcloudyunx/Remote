@@ -20,6 +20,8 @@ public:
 	
 	bool init();
 	
+	void end();
+	
 	void SEND(const char* msg);
 	std::string RECV();
 

@@ -30,6 +30,10 @@ bool Server::init() {
 	return true;
 }
 
+void Server::end() {
+	close(_server);
+}
+
 void Server::SEND(const char* msg) {
 	send(_server, msg, strlen(msg), 0);
 	log("%s", msg);

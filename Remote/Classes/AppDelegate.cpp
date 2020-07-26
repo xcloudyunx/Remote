@@ -26,6 +26,7 @@
 #include "newIPScene.h"
 #include "TrackpadScene.h"
 #include "KeyboardScene.h"
+#include "Scene.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -118,8 +119,6 @@ void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
 		if (scene->getName() == "newIP" || scene->getName() == "Trackpad" || scene->getName() == "Keyboard" || scene->getName() == "Home") {
 			auto glview = director->getOpenGLView();
 			glview->setFrameSize(newWidth, newHeight);
-			
-			//maybe test visiblesize here and see what it is
 				
 			if (newWidth > newHeight) {
 				glview->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::NO_BORDER);
@@ -139,8 +138,7 @@ void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
 void AppDelegate::applicationDidEnterBackground() {
     Director::getInstance()->stopAnimation();
-	
-	//do something with TCP server connection
+	Server::getInstance()->end();
 
 #if USE_AUDIO_ENGINE
     AudioEngine::pauseAll();
@@ -153,8 +151,7 @@ void AppDelegate::applicationDidEnterBackground() {
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
-	
-	//do something with TCP server connection
+	Server::getInstance();
 
 #if USE_AUDIO_ENGINE
     AudioEngine::resumeAll();
