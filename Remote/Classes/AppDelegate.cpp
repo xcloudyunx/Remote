@@ -152,7 +152,7 @@ void AppDelegate::applicationDidEnterBackground() {
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
 	Server::getInstance();
-	auto scene = director->getRunningScene();
+	auto scene = Director::getInstance()->getRunningScene();
 	if (scene) {
 		if (scene->getName() == "Home") dynamic_cast<Home*>(scene)->updateServer();
 	}
