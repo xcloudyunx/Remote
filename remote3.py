@@ -328,7 +328,6 @@ class page(wx.Panel):
 class MainFrame(wx.Frame):    
 	def __init__(self):
 		super().__init__(parent=None, title='Remote', size=(WIDTH, HEIGHT))
-		#super().__init__(parent=None, title='Remote')
 		
 		# set locked sized
 		self.SetSizeHints((WIDTH, HEIGHT), (WIDTH, HEIGHT))
@@ -338,9 +337,12 @@ class MainFrame(wx.Frame):
 		# set window icon
 		self.SetIcon(wx.Icon("Resources/icon.png"))
 		
+		#################################################
 		# new connection button
-		newConn = wx.Button(parent=self.panel, label="New Connection")
-		newConn.Bind(wx.EVT_BUTTON, self.newConnection)
+		#newConn = wx.Button(parent=self.panel, label="New Connection")
+		#newConn.Bind(wx.EVT_BUTTON, self.newConnection)
+		#####################################################
+		newConn = wx.StaticText(parent=self.panel, label=IP)
 		
 		# load settings/default values
 		file = open("Resources/settings.dat", "r")
@@ -353,12 +355,10 @@ class MainFrame(wx.Frame):
 		file.close()
 		
 		# changing page controller
-		#self.currentPage = wx.SpinCtrl(parent=self.panel, pos=(700, 650), size=(75, 25), min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
 		self.currentPage = wx.SpinCtrl(parent=self.panel, min=1, max=self.numPages, initial=1, style=wx.SP_ARROW_KEYS|wx.SP_WRAP)
 		self.currentPage.Bind(wx.EVT_SPINCTRL, self.changePage)
 		
 		# settings button
-		#settings = wx.Button(parent=self.panel, label="Settings", pos=(800, 650))
 		settings = wx.Button(parent=self.panel, label="Settings")
 		settings.Bind(wx.EVT_BUTTON, self.changeSettings)
 		
