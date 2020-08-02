@@ -179,7 +179,7 @@ class customisePopup(wx.Dialog):
 		
 		# options for changing action type
 		actionType = wx.StaticText(parent=self.panel, label="Type")
-		self.types = ["Trackpad", "Keyboard", "Numpad", "Script/File", "CMD", "Macro"]
+		self.types = ["Trackpad", "Keyboard", "Numpad", "Script/File", "CMD", "Macro", "Multimedia"]
 		self.actionType = wx.Choice(parent=self.panel, choices=self.types)
 		self.actionType.Bind(wx.EVT_CHOICE, self.changeType)
 		
@@ -195,6 +195,11 @@ class customisePopup(wx.Dialog):
 		self.sm = wx.Button(parent=self.panel, label="Stop")
 		self.sm.Bind(wx.EVT_BUTTON, self.stopMacro)
 		self.sm.Hide()
+		
+		self.media = ["Play/Pause", "Stop", "Previous", "Next", "Volume Down", "Volume Up", "Mute Toggle"]
+		self.med = ["playpause", "stop", "prevtrack", "nexttrack", "volumedown", "volumeup", "mute"]
+		self.multimedia = wx.Choice(parent=self.panel, choices=self.media)
+		self.multimedia.Hide()
 		
 		self.script = wx.FilePickerCtrl(parent=self.panel)
 		self.script.SetInitialDirectory("Scripts")
@@ -228,6 +233,7 @@ class customisePopup(wx.Dialog):
 		sizerTwo.Add(self.action, 1, flag=wx.EXPAND)
 		sizerTwo.Add(self.rm, flag=wx.LEFT, border=5)
 		sizerTwo.Add(self.sm, flag=wx.LEFT, border=5)
+		sizerTwo.Add(self.multimedia, 1, flag=wx.EXPAND)
 		sizerTwo.Add(self.script, 1, flag=wx.EXPAND)
 		gridSizer.Add(sizerTwo, flag=wx.EXPAND)
 		
@@ -253,6 +259,7 @@ class customisePopup(wx.Dialog):
 		if self.sm.IsShown():
 			keyboard.stop_recording()
 			self.sm.Hide()
+		self.multimedia.Hide()
 		self.script.Hide()
 		if self.getActionType() in ("Trackpad", "Keyboard", "Numpad"):
 			self.action.SetValue(self.getActionType().lower())
@@ -265,6 +272,8 @@ class customisePopup(wx.Dialog):
 		elif self.getActionType() == "Macro":
 			self.action.Show()
 			self.rm.Show()
+		elif self.getActionType() == "Multimedia":
+			self.multimedia.Show()
 		self.panel.GetSizer().Layout()
 			
 	def recordMacro(self, event):
@@ -291,6 +300,8 @@ class customisePopup(wx.Dialog):
 			return self.script.GetTextCtrl.GetLineText(0)
 		elif self.getActionType() == "Macro":
 			return self.m
+		elif self.getActionType() == "Multimedia":
+			return ["multimedia", self.med[self.multimedia.GetSelection()]]
 		return self.action.GetLineText(0)
 		
 	def update(self, event):
@@ -423,7 +434,7 @@ class MainFrame(wx.Frame):
 				self.commands[i] = eval(self.commands[i])
 		file.close()
 		for i in range(len(self.commands), len(self.pages)*ROWS*COLS):
- 
+			self.commands.append("")
 		# close button
 		self.Bind(wx.EVT_CLOSE, self.iconise)
 		
