@@ -25,6 +25,7 @@ bool Keyboard::init() {
 	_serverAddr.sin_addr.s_addr = inet_addr(IP.c_str());
 	
 	auto board = EditBox::create(Size(0, 0), Scale9Sprite::create("background.png"));
+	board->setName("editbox");
 	board->setText(" ");
 	board->setDelegate(this);
 	board->openKeyboard();
@@ -49,6 +50,15 @@ bool Keyboard::init() {
 		}
 	});
 	this->addChild(back);
+	
+	auto touchListener = EventListenerTouchOneByOne::create();
+	
+	touchListener->onTouchBegan = [&](Touch* touch, Event* event) {
+		dynamic_cast<EditBox*>(this->getChildByName("editbox"))->openKeyboard();
+		return false;
+	};
+
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
 
 	return true;
 }

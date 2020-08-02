@@ -47,11 +47,20 @@ bool Home::init() {
 	};
 	
 	touchListener->onTouchEnded = [&](Touch* touch, Event* event) {
-		if (touch->getLocation().x < _left) {
+		auto delta = touch->getLocation()-touch->getStartLocation();
+		if (abs(delta.x) > abs(delta.y)) {
+			if (delta.x >= 0) {
+				changePage((_currentPage+1)%_pages ? (_currentPage+1)%_pages : _pages);
+			} else {
+				changePage((_currentPage-1+_pages)%_pages ? (_currentPage-1+_pages)%_pages : _pages );
+			}
+		}
+		
+		/*if (touch->getLocation().x < _left) {
 			changePage((_currentPage-1+_pages)%_pages ? (_currentPage-1+_pages)%_pages : _pages );
 		} else if (touch->getLocation().x > _right) {
 			changePage((_currentPage+1)%_pages ? (_currentPage+1)%_pages : _pages);
-		}
+		}*/
 	};
 
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
