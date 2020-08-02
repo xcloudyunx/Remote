@@ -1,4 +1,4 @@
-import wx, wx.adv, socket, pyautogui, threading, os, base64, time, sys, pyqrcode
+import wx, wx.adv, socket, pyautogui, threading, os, base64, time, sys, pyqrcode, keyboard
 
 IP = socket.gethostbyname(socket.gethostname())
 PORT = 1235
@@ -179,7 +179,7 @@ class customisePopup(wx.Dialog):
 		
 		# options for changing action type
 		actionType = wx.StaticText(parent=self.panel, label="Type")
-		self.types = ["Trackpad", "Keyboard", "Numpad", "Script/File", "CMD", "Macro???"]
+		self.types = ["Trackpad", "Keyboard", "Numpad", "Script/File", "CMD", "Macro"]
 		self.actionType = wx.Choice(parent=self.panel, choices=self.types)
 		self.actionType.Bind(wx.EVT_CHOICE, self.changeType)
 		
@@ -187,11 +187,18 @@ class customisePopup(wx.Dialog):
 		act = wx.StaticText(parent=self.panel, label="Command")
 		self.action = wx.TextCtrl(parent=self.panel, value=action)
 		self.action.Disable()
+		
+		self.m = ["macro", [], 1.0]
+		self.rm = wx.Button(parent=self.panel, label="Record")
+		self.rm.Bind(wx.EVT_BUTTON, self.recordMacro)
+		self.rm.Hide()
+		self.sm = wx.Button(parent=self.panel, label="Stop")
+		self.sm.Bind(wx.EVT_BUTTON, self.stopMacro)
+		self.sm.Hide()
+		
 		self.script = wx.FilePickerCtrl(parent=self.panel)
 		self.script.SetInitialDirectory("Scripts")
-		self.script.GetTextCtrl().Destroy()
-		self.script.SetTextCtrl(self.action)
-		self.script.GetPickerCtrl().Disable()
+		self.script.Hide()
 		
 		######################################################################
 		
@@ -213,13 +220,15 @@ class customisePopup(wx.Dialog):
 		
 		gridSizer.Add(file)
 		sizerOne.Add(self.file, 1, flag=wx.RIGHT|wx.EXPAND, border=5)
-		sizerOne.Add(self.clear, flag=wx.LEFT, border=5)
+		sizerOne.Add(self.clear)
 		gridSizer.Add(sizerOne, flag=wx.EXPAND)
 		gridSizer.Add(actionType)
 		gridSizer.Add(self.actionType, flag=wx.EXPAND)
 		gridSizer.Add(act)
-		sizerTwo.Add(self.action, 1, flag=wx.RIGHT|wx.EXPAND, border=5)
-		sizerTwo.Add(self.script, flag=wx.LEFT, border=5)
+		sizerTwo.Add(self.action, 1, flag=wx.EXPAND)
+		sizerTwo.Add(self.rm, flag=wx.LEFT, border=5)
+		sizerTwo.Add(self.sm, flag=wx.LEFT, border=5)
+		sizerTwo.Add(self.script, 1, flag=wx.EXPAND)
 		gridSizer.Add(sizerTwo, flag=wx.EXPAND)
 		
 		buttonSizer.Add(self.save, flag=wx.ALL, border=5)
@@ -239,14 +248,37 @@ class customisePopup(wx.Dialog):
 	
 	def changeType(self, event):
 		self.action.Disable()
-		self.script.GetPickerCtrl().Disable()
+		self.action.Hide()
+		self.rm.Hide()
+		if self.sm.IsShown():
+			keyboard.stop_recording()
+			self.sm.Hide()
+		self.script.Hide()
 		if self.getActionType() in ("Trackpad", "Keyboard", "Numpad"):
 			self.action.SetValue(self.getActionType().lower())
+			self.action.Show()
 		elif self.getActionType() == "Script/File":
-			self.action.Enable()
-			self.script.GetPickerCtrl().Enable()
+			self.script.Show()
 		elif self.getActionType() == "CMD":
 			self.action.Enable()
+			self.action.Show()
+		elif self.getActionType() == "Macro":
+			self.action.Show()
+			self.rm.Show()
+		self.panel.GetSizer().Layout()
+			
+	def recordMacro(self, event):
+		self.rm.Hide()
+		self.sm.Show()
+		self.panel.GetSizer().Layout()
+		keyboard.start_recording()
+		
+	def stopMacro(self, event):
+		self.m[1] = keyboard.stop_recording()
+		self.action.SetValue(str(self.m))
+		self.sm.Hide()
+		self.rm.Show()
+		self.panel.GetSizer().Layout()
 		
 	def getFile(self):
 		return self.file.GetPath()
@@ -255,6 +287,10 @@ class customisePopup(wx.Dialog):
 		return self.types[self.actionType.GetSelection()]
 		
 	def getAction(self):
+		if self.getActionType() == "Script/File":
+			return self.script.GetTextCtrl.GetLineText(0)
+		elif self.getActionType() == "Macro":
+			return self.m
 		return self.action.GetLineText(0)
 		
 	def update(self, event):
@@ -373,16 +409,20 @@ class MainFrame(wx.Frame):
 		self.panel.SetSizer(sizerOne)
 		sizerOne.Fit(self)
 		
-		# load commands
-		file = open("Resources/commands.dat", "r")
-		self.commands = file.read().splitlines()
-		file.close()
-		
 		# create pages
 		self.pages = []
 		for k in range(self.numPages):
 			p = page(self.panel, k+1, self.rows, self.columns)
 			self.pages.append(p)
+			
+		# load commands
+		file = open("Resources/commands.dat", "r")
+		self.commands = file.read().splitlines()
+		for i in range(len(self.commands)):
+			if self.commands[i].startswith("["):
+				self.commands[i] = eval(self.commands[i])
+		file.close()
+		for i in range(len(self.commands), len(self.pages)*ROWS*COLS):
  
 		# close button
 		self.Bind(wx.EVT_CLOSE, self.iconise)
@@ -458,7 +498,7 @@ class MainFrame(wx.Frame):
 				self.commands[id] = action
 			file = open("Resources/commands.dat", "w")
 			for i in self.commands:
-				file.write(i+"\n")
+				file.write(str(i)+"\n")
 			file.close()
 		###########################################################
 		
@@ -570,6 +610,8 @@ class MainFrame(wx.Frame):
 			# requires client to change screen
 			self.send(c)
 			receiver(c)
+		elif c[0] == "macro":
+			keyboard.play(c[2], speed_factor=c[1])
 		else:
 			os.system(c)
 			
@@ -596,13 +638,13 @@ def receiver(utility):
 			print("exit", utility)
 			return
 		if utility == "trackpad":
-			threading.Thread(target=trackpad, args=(data,)).start()
+			threading.Thread(target=trackpadFunction, args=(data,)).start()
 		elif utility == "keyboard":
-			threading.Thread(target=keyboard, args=(data,)).start()
+			threading.Thread(target=keyboardFunction, args=(data,)).start()
 		elif utility == "numpad":
-			threading.Thread(target=numpad, args=(data,)).start()
+			threading.Thread(target=numpadFunction, args=(data,)).start()
 
-def trackpad(data):
+def trackpadFunction(data):
 	print(data)
 	
 	if data.startswith("move"):
@@ -650,11 +692,11 @@ def trackpad(data):
 	elif data == "desk prev":
 		pyautogui.hotkey("win", "ctrl", "left")
 
-def keyboard(data):
+def keyboardFunction(data):
 	print(data)
 	pyautogui.press(data)
 	
-def numpad(data):
+def numpadFunction(data):
 	print(data)
 	pyautogui.press(data)
 
