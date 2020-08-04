@@ -497,7 +497,7 @@ class MainFrame(wx.Frame):
 	
 	def customise(self, event):
 		btn = event.GetEventObject()
-		customisePopup(self, btn.GetScreenPosition(), btn.GetId(), self.commands[btn.GetId()])
+		customisePopup(self, btn.GetScreenPosition(), btn.GetId(), str(self.commands[btn.GetId()]))
 		
 	def customiseUpdate(self, id, actionType, action, filename):
 		#############################################################
