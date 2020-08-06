@@ -99,7 +99,7 @@ bool Server::init() {
 
 void Server::end() {
 	close(_server);
-	_server = nullptr;
+	_instance = nullptr;
 }
 
 void Server::SEND(const char* msg) {
