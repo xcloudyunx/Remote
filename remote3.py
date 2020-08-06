@@ -197,7 +197,7 @@ class customisePopup(wx.Dialog):
 		self.sm.Hide()
 		
 		self.media = ["Play/Pause", "Stop", "Previous", "Next", "Volume Down", "Volume Up", "Mute Toggle"]
-		self.med = ["playpause", "stop", "prevtrack", "nexttrack", "volumedown", "volumeup", "mute"]
+		self.med = ["playpause", "stop", "prevtrack", "nexttrack", "volumedown", "volumeup", "volumemute"]
 		self.multimedia = wx.Choice(parent=self.panel, choices=self.media)
 		self.multimedia.Hide()
 		
@@ -622,7 +622,9 @@ class MainFrame(wx.Frame):
 			self.send(c)
 			receiver(c)
 		elif c[0] == "macro":
-			keyboard.play(c[2], speed_factor=c[1])
+			keyboard.play(c[1], speed_factor=c[2])
+		elif c[0] == "multimedia":
+			pyautogui.press(c[1])
 		else:
 			os.system(c)
 			
