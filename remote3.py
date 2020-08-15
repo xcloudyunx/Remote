@@ -7,12 +7,9 @@ ADDRESS = (IP, PORT)
 ROWS = 3
 COLS = 4
 TOTAL = 12
-WIDTH = 1000
-HEIGHT = 750
-PANELWIDTH = 1000
-PANELHEIGHT = 680
 SIZE = 100
-PADDING = 4
+PANELWIDTH = 40+(COLS-1)*5+COLS*SIZE
+PANELHEIGHT = 40+(ROWS-1)*5+ROWS*SIZE
 
 pyautogui.FAILSAFE = False
 
@@ -320,17 +317,25 @@ class page(wx.Panel):
 		# stores icons
 		self.icons = []
 		
+		# positioning
+		topSizer = wx.BoxSizer(wx.VERTICAL)
+		self.sizers = [wx.BoxSizer(wx.HORIZONTAL) for i in range(ROWS)]
+		
 		# create ROWS * COLS grid
 		for i in range(ROWS):
 			for j in range(COLS):
 				# create icon
+				icon = wx.Button(parent=self, size=(1,1), id=(pageNumber-1)*TOTAL+i*COLS+j)
 				
-				icon = wx.Button(parent=self, size=(SIZE+PADDING, SIZE+PADDING), id=(pageNumber-1)*TOTAL+i*COLS+j)
+				# add icon to row sizer
+				self.sizers[i].Add(icon, 1, flag=wx.SHAPED|wx.ALIGN_CENTRE)
 			
 				# load icon image
 				if os.path.exists("Resources/"+str((pageNumber-1)*TOTAL+i*COLS+j)+".png"):
 					img = wx.Image("Resources/"+str((pageNumber-1)*TOTAL+i*COLS+j)+".png", wx.BITMAP_TYPE_ANY)
-					icon.SetBitmap(wx.Bitmap(img))
+				else:
+					img = wx.Image("Resources/default.png", wx.BITMAP_TYPE_ANY)
+				icon.SetBitmap(wx.Bitmap(img))
 				
 				icon.Bind(wx.EVT_BUTTON, self.GetParent().GetParent().customise)
 				
@@ -342,42 +347,42 @@ class page(wx.Panel):
 					self.Hide()
 				else:
 					self.Show()
+			
+			# add row sizer to main sizer
+			topSizer.Add(self.sizers[i], 1, flag=wx.SHAPED|wx.ALIGN_CENTRE)
+		
+		self.SetSizer(topSizer)
+		topSizer.Fit(self)
 		
 		# set positioning
 		self.updatePosition(rows, cols)
 		
-	def updatePosition(self, rows, cols):
-		scale = min( (PANELWIDTH - 2*SIZE) / (cols * 2*SIZE - SIZE), (PANELHEIGHT - 2*SIZE) / (rows * 2*SIZE - SIZE) )
-		xpadding = (PANELWIDTH - (cols * 2*SIZE - SIZE) * scale) / 2
-		ypadding = (PANELHEIGHT - (rows * 2*SIZE - SIZE) * scale) / 2
+	def showPage(self, rows, cols):
+		self.Show()
+		self.updatePosition(rows, cols)
 		
+	def updatePosition(self, rows, cols):
 		for i in range(ROWS):
 			for j in range(COLS):
 				if i < rows and j < cols:
-					self.icons[i*COLS+j].SetSize(int(SIZE*scale+PADDING), int(SIZE*scale+PADDING))
 					bmp = self.icons[i*COLS+j].GetBitmap()
-					if bmp:
-						img = bmp.ConvertToImage()
-						img.Rescale(int(scale*SIZE), int(scale*SIZE))
-						self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
-					self.icons[i*COLS+j].SetPosition(( int(xpadding + 2*SIZE*scale*j), int(ypadding + 2*SIZE*scale*i) ))
+					img = bmp.ConvertToImage()
+					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
 					self.icons[i*COLS+j].Show()
 				else:
 					self.icons[i*COLS+j].Hide()
+					
+		self.GetSizer().Layout()
 	
 	def updateIcon(self, id, img):
 		if img == "RESET":
-			self.icons[id].SetBitmap(wx.Bitmap())
-		else:
-			img.Rescale(int(self.icons[id].GetBitmap().GetWidth()), int(self.icons[id].GetBitmap().GetHeight()))
-			self.icons[id].SetBitmap(wx.Bitmap(img))
+			img = wx.Image("Resources/default.png", wx.BITMAP_TYPE_ANY)
+		img.Rescale(int(self.icons[id].GetBitmap().GetWidth()), int(self.icons[id].GetBitmap().GetHeight()))
+		self.icons[id].SetBitmap(wx.Bitmap(img))
 	
 class MainFrame(wx.Frame):    
 	def __init__(self):
-		super().__init__(parent=None, title='Remote', size=(WIDTH, HEIGHT))
-		
-		# set locked sized
-		self.SetSizeHints((WIDTH, HEIGHT), (WIDTH, HEIGHT))
+		super().__init__(parent=None, title='Remote')
 		
 		self.panel = wx.Panel(self)
 		
@@ -409,22 +414,29 @@ class MainFrame(wx.Frame):
 		settings = wx.Button(parent=self.panel, label="Settings")
 		settings.Bind(wx.EVT_BUTTON, self.changeSettings)
 		
-		# positioning
-		sizerOne = wx.BoxSizer(wx.HORIZONTAL)
-		
-		sizerOne.AddStretchSpacer()
-		sizerOne.Add(self.currentPage, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
-		sizerOne.Add(settings, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
-		sizerOne.Add(newConn, flag=wx.ALL|wx.ALIGN_BOTTOM, border=20)
-		
-		self.panel.SetSizer(sizerOne)
-		sizerOne.Fit(self)
+		topSizer = wx.BoxSizer(wx.VERTICAL)
+		sizerTwo = wx.BoxSizer(wx.HORIZONTAL)
 		
 		# create pages
 		self.pages = []
 		for k in range(self.numPages):
 			p = page(self.panel, k+1, self.rows, self.columns)
 			self.pages.append(p)
+			sizerTwo.Add(p, flag=wx.EXPAND|wx.ALL, border=20)
+			
+			
+		# positioning
+		sizerOne = wx.BoxSizer(wx.HORIZONTAL)
+		
+		sizerOne.Add(settings, flag=wx.ALL|wx.ALIGN_CENTRE, border=20)
+		sizerOne.Add(self.currentPage, 1, flag=wx.EXPAND|wx.ALL, border=20)
+		sizerOne.Add(newConn, flag=wx.ALL|wx.ALIGN_CENTRE, border=20)
+		
+		topSizer.Add(sizerTwo, flag=wx.EXPAND)
+		topSizer.Add(sizerOne, flag=wx.EXPAND)
+		
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
 			
 		# load commands
 		file = open("Resources/commands.dat", "r")
@@ -435,6 +447,7 @@ class MainFrame(wx.Frame):
 		file.close()
 		for i in range(len(self.commands), len(self.pages)*ROWS*COLS):
 			self.commands.append("")
+			
 		# close button
 		self.Bind(wx.EVT_CLOSE, self.iconise)
 		
@@ -446,9 +459,10 @@ class MainFrame(wx.Frame):
 	def changePage(self, event):
 		for k in range(self.numPages):
 			if k+1 == self.currentPage.GetValue():
-				self.pages[k].Show()
+				self.pages[k].showPage(self.rows, self.columns)
 			else:
 				self.pages[k].Hide()
+		self.panel.GetSizer().Layout()
 				
 	def newConnection(self, event):
 		connectionPopup(self)
@@ -476,10 +490,6 @@ class MainFrame(wx.Frame):
 		file.write(str(p)+"\n")
 		file.write(str(self.requireSync)+"\n")
 		file.close()
-		
-		# update positioning
-		for i in self.pages:
-			i.updatePosition(r, c)
 	
 		# update pages
 		if self.currentPage.GetValue() > p:
@@ -508,8 +518,8 @@ class MainFrame(wx.Frame):
 			else:
 				self.commands[id] = action
 			file = open("Resources/commands.dat", "w")
-			for i in self.commands:
-				file.write(str(i)+"\n")
+			for i in range(min(self.numPages*TOTAL, len(self.commands))):
+				file.write(str(self.commands[i])+"\n")
 			file.close()
 		###########################################################
 		
