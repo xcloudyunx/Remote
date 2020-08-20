@@ -349,7 +349,7 @@ class page(wx.Panel):
 					self.Show()
 			
 			# add row sizer to main sizer
-			topSizer.Add(self.sizers[i], 1, flag=wx.SHAPED|wx.ALIGN_CENTRE)
+			topSizer.Add(self.sizers[i], 1, flag=wx.EXPAND)
 		
 		self.SetSizer(topSizer)
 		topSizer.Fit(self)
@@ -365,9 +365,10 @@ class page(wx.Panel):
 		for i in range(ROWS):
 			for j in range(COLS):
 				if i < rows and j < cols:
-					bmp = self.icons[i*COLS+j].GetBitmap()
+					"""bmp = self.icons[i*COLS+j].GetBitmap()
 					img = bmp.ConvertToImage()
-					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
+					img.Rescale(int(self.GetSizer().GetItemById((self.pageNumber-1)*TOTAL+i*COLS+j).GetSize().GetWidth()), int(self.GetSizer().GetItemById((self.pageNumber-1)*TOTAL+i*COLS+j).GetSize().GetHeight()))
+					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))"""
 					self.icons[i*COLS+j].Show()
 				else:
 					self.icons[i*COLS+j].Hide()
