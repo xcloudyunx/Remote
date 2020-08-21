@@ -8,6 +8,7 @@ ROWS = 3
 COLS = 4
 TOTAL = 12
 SIZE = 100
+PADDING = 10
 PANELWIDTH = 40+(COLS-1)*5+COLS*SIZE
 PANELHEIGHT = 40+(ROWS-1)*5+ROWS*SIZE
 
@@ -355,7 +356,7 @@ class page(wx.Panel):
 		topSizer.Fit(self)
 		
 		# set positioning
-		self.updatePosition(rows, cols)
+		wx.CallAfter(self.updatePosition, rows, cols)
 		
 	def showPage(self, rows, cols):
 		self.Show()
@@ -365,15 +366,19 @@ class page(wx.Panel):
 		for i in range(ROWS):
 			for j in range(COLS):
 				if i < rows and j < cols:
-					"""bmp = self.icons[i*COLS+j].GetBitmap()
-					img = bmp.ConvertToImage()
-					img.Rescale(int(self.GetSizer().GetItemById((self.pageNumber-1)*TOTAL+i*COLS+j).GetSize().GetWidth()), int(self.GetSizer().GetItemById((self.pageNumber-1)*TOTAL+i*COLS+j).GetSize().GetHeight()))
-					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))"""
 					self.icons[i*COLS+j].Show()
 				else:
 					self.icons[i*COLS+j].Hide()
 					
 		self.GetSizer().Layout()
+		
+		for i in range(ROWS):
+			for j in range(COLS):
+				if i < rows and j < cols:
+					bmp = self.icons[i*COLS+j].GetBitmap()
+					img = bmp.ConvertToImage()
+					img.Rescale(self.sizers[0].GetChildren()[0].GetSize().GetWidth()-PADDING, self.sizers[0].GetChildren()[0].GetSize().GetHeight()-PADDING)
+					self.icons[i*COLS+j].SetBitmap(wx.Bitmap(img))
 	
 	def updateIcon(self, id, img):
 		if img == "RESET":
