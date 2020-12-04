@@ -310,7 +310,7 @@ class customisePopup(wx.Dialog):
 		self.Destroy()
 
 class page(wx.Panel):
-	def __init__(self, parent, pageNumber, rows, cols):
+	def __init__(self, parent, pageNumber):
 		super().__init__(parent=parent, id=pageNumber, size=(PANELWIDTH, PANELHEIGHT))
 		
 		self.pageNumber = pageNumber
@@ -355,12 +355,9 @@ class page(wx.Panel):
 		self.SetSizer(topSizer)
 		topSizer.Fit(self)
 		
-		# set positioning
-		wx.CallAfter(self.updatePosition, rows, cols)
-		
 	def showPage(self, rows, cols):
 		self.Show()
-		self.updatePosition(rows, cols)
+		wx.CallAfter(self.updatePosition, rows, cols)
 		
 	def updatePosition(self, rows, cols):
 		for i in range(ROWS):
@@ -426,9 +423,10 @@ class MainFrame(wx.Frame):
 		# create pages
 		self.pages = []
 		for k in range(self.numPages):
-			p = page(self.panel, k+1, self.rows, self.columns)
+			p = page(self.panel, k+1)
 			self.pages.append(p)
 			sizerTwo.Add(p, flag=wx.EXPAND|wx.ALL, border=20)
+		wx.CallAfter(self.pages[0].updatePosition, self.rows, self.columns)
 			
 			
 		# positioning
